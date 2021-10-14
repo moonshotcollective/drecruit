@@ -1,41 +1,41 @@
-const fs = require('fs')
-const chalk = require('chalk')
+const fs = require("fs");
+const chalk = require("chalk");
 
-const graphDir = '../subgraph'
-const deploymentsDir = './deployments'
-const publishDir = '../react-app/src/contracts'
+const graphDir = "../subgraph";
+const deploymentsDir = "./deployments";
+const publishDir = "../react-app/src/contracts";
 
-function publishContract (contractName, networkName) {
+function publishContract(contractName, networkName) {
   try {
     let contract = fs
       .readFileSync(`${deploymentsDir}/${networkName}/${contractName}.json`)
-      .toString()
-    contract = JSON.parse(contract)
-    const graphConfigPath = `${graphDir}/config/config.json`
-    let graphConfig
+      .toString();
+    contract = JSON.parse(contract);
+    const graphConfigPath = `${graphDir}/config/config.json`;
+    let graphConfig;
     try {
       if (fs.existsSync(graphConfigPath)) {
-        graphConfig = fs.readFileSync(graphConfigPath).toString()
+        graphConfig = fs.readFileSync(graphConfigPath).toString();
       } else {
-        graphConfig = '{}'
+        graphConfig = "{}";
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
 
-    graphConfig = JSON.parse(graphConfig)
-    graphConfig[`${networkName}_${contractName}Address`] = contract.address
+    graphConfig = JSON.parse(graphConfig);
+    graphConfig[`${networkName}_${contractName}Address`] = contract.address;
 
-    const folderPath = graphConfigPath.replace('/config.json', '')
+    const folderPath = graphConfigPath.replace("/config.json", "");
     if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath)
+      fs.mkdirSync(folderPath);
     }
-    fs.writeFileSync(graphConfigPath, JSON.stringify(graphConfig, null, 2))
-    if (!fs.existsSync(`${graphDir}/abis`)) fs.mkdirSync(`${graphDir}/abis`)
+    fs.writeFileSync(graphConfigPath, JSON.stringify(graphConfig, null, 2));
+    if (!fs.existsSync(`${graphDir}/abis`)) fs.mkdirSync(`${graphDir}/abis`);
     fs.writeFileSync(
       `${graphDir}/abis/${networkName}_${contractName}.json`,
       JSON.stringify(contract.abi, null, 2)
-    )
+    );
 
     // Hardhat Deploy writes a file with all ABIs in react-app/src/contracts/contracts.json
     // If you need the bytecodes and/or you want one file per ABIs, un-comment the following block.
@@ -53,32 +53,32 @@ function publishContract (contractName, networkName) {
     //   `module.exports = "${contract.bytecode}";`
     // );
 
-    return true
+    return true;
   } catch (e) {
     console.log(
-      'Failed to publish ' + chalk.red(contractName) + ' to the subgraph.'
-    )
-    console.log(e)
-    return false
+      "Failed to publish " + chalk.red(contractName) + " to the subgraph."
+    );
+    console.log(e);
+    return false;
   }
 }
 
-async function main () {
-  const directories = fs.readdirSync(deploymentsDir)
+async function main() {
+  const directories = fs.readdirSync(deploymentsDir);
   directories.forEach(function (directory) {
-    const files = fs.readdirSync(`${deploymentsDir}/${directory}`)
+    const files = fs.readdirSync(`${deploymentsDir}/${directory}`);
     files.forEach(function (file) {
-      if (file.indexOf('.json') >= 0) {
-        const contractName = file.replace('.json', '')
-        publishContract(contractName, directory)
+      if (file.indexOf(".json") >= 0) {
+        const contractName = file.replace(".json", "");
+        publishContract(contractName, directory);
       }
-    })
-  })
-  console.log('✅  Published contracts to the subgraph package.')
+    });
+  });
+  console.log("✅  Published contracts to the subgraph package.");
 }
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+    console.error(error);
+    process.exit(1);
+  });
