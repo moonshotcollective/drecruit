@@ -43,13 +43,18 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable, PausableUpgradeable,
     ERC1155BurnableUpgradeable, UUPSUpgradeable {
+    struct Resume {
+        address submitter;
+        uint256 fees;
+    }
     using Counters for Counters.Counter;
 
     bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public fee; // payable in wei units of ether
+    uint256 public accumulatedFees;
+    mapping(uint256 => Resume) public balances;
 
     Counters.Counter tokenId;
 
@@ -71,8 +76,11 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(URI_SETTER_ROLE, msg.sender);
         _setupRole(PAUSER_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, msg.sender);
         _setupRole(UPGRADER_ROLE, msg.sender);
+    }
+
+    function withdrawFees() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        address(msg.sender).call{value: accumulatedFees}("");
     }
 
     function setURI(string memory newuri) external onlyRole(URI_SETTER_ROLE) {
@@ -87,11 +95,12 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
         _unpause();
     }
 
-    function mint(address account, bytes memory data)
+    function mint(bytes memory data)
         external
     {
+        balances[tokenId.current()] = Resume(msg.sender, 0);
         tokenId.increment();
-        _mint(account, tokenId.current() - 1, 1, data);
+        _mint(msg.sender, tokenId.current() - 1, 1, data);
         emit NewResume(msg.sender, tokenId.current() - 1, data);
     }
 
@@ -100,7 +109,10 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     {
         require(id < tokenId.current(), "NOT_MINTED_YET");
         require(msg.value >= fee, "UNPAID_FEE");
-
+        uint256 resumeFee = (80*msg.value)/100;
+        Resume storage _resume = balances[id];
+        _resume.fees += resumeFee;
+        accumulatedFees += (msg.value - resumeFee);
         _mint(account, id, 1, "");
         emit UnlockResume(account, id);
     }
