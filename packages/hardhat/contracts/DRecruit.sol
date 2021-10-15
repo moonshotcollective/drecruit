@@ -105,19 +105,20 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
         emit UnlockResume(account, id);
     }
 
-    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
-        external
-        onlyRole(MINTER_ROLE)
-    {
-        _mintBatch(to, ids, amounts, data);
-    }
-
-    function _beforeTokenTransfer(address operator, address from, address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
-        internal
+    function _beforeTokenTransfer(
+        address /*operator*/,
+        address from,
+        address to,
+        uint256[] memory /*ids*/,
+        uint256[] memory /*amounts*/,
+        bytes memory /*data*/)
+        internal view
         whenNotPaused
         override
     {
-        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+        if(from != address(0)) {
+            require(to == address(0), "TRANSFER_DISALLOWED");
+        }
     }
 
     function _authorizeUpgrade(address newImplementation)
