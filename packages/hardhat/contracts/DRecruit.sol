@@ -56,15 +56,16 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     uint256 public accumulatedFees;
     mapping(uint256 => Resume) public balances;
 
-    Counters.Counter tokenId;
+    Counters.Counter public tokenId;
 
     event NewResume(address indexed submitter, uint256 indexed id, bytes hash);
     event UnlockResume(address indexed unlocker, uint256 indexed id);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
+    // solhint-disable-next-line no-empty-blocks
     constructor() initializer {}
 
-    function initialize(uint256 _fee) initializer external {
+    function initialize(uint256 _fee) external initializer {
         __ERC1155_init("");
         __AccessControl_init();
         __Pausable_init();
@@ -80,6 +81,7 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     }
 
     function withdrawFees() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        // solhint-disable-next-line avoid-low-level-calls
         address(msg.sender).call{value: accumulatedFees}("");
     }
 
@@ -133,10 +135,12 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
         }
     }
 
+
     function _authorizeUpgrade(address newImplementation)
         internal
         onlyRole(UPGRADER_ROLE)
         override
+    // solhint-disable-next-line no-empty-blocks
     {}
 
     // The following functions are overrides required by Solidity.
