@@ -1,0 +1,18 @@
+{
+  "name": "drecruit-backend",
+  "version": "0.1.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "dRecruit (Moonshot Collective)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@ceramicnetwork/core": "^1.7.0",
+    "dotenv": "^10.0.0",
+    "fastify": "^3.22.0",
+    "mongoose": "^6.0.11",
+    "nanoid": "^3.1.30"
+  }
+}
