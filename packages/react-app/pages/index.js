@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { Core } from "@self.id/core";
 import { Web3Context } from "../helpers/Web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ModelManager } from "@glazed/devtools";
@@ -6,6 +7,9 @@ import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
 import { fromString, toString } from "uint8arrays";
+import { DataModel } from "@glazed/datamodel";
+import { DIDDataStore } from "@glazed/did-datastore";
+import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import {
   Button,
   Table,
@@ -21,12 +25,14 @@ import {
   PageHeader,
 } from "antd";
 const { randomBytes } = require("@stablelib/random");
+import modelAliases from "../model.json";
 
 function Home() {
   const context = useContext(Web3Context);
   const [inputNote, setInputNote] = useState("");
-  const [noteSchema, setNoteSchema] = useState();
-  const [ceramicManager, setCeramicManager] = useState();
+  const [model, setModel] = useState();
+  const [store, setStore] = useState();
+  const [prevNote, setPrevNote] = useState("");
 
   //   console.log(`🗄 context context:`, context);
 
@@ -35,50 +41,64 @@ function Home() {
   }, []);
 
   const init = async () => {
-    const newSeed = toString(randomBytes(32), "base16");
+    // console.log(modelAliases);
     // Create and authenticate the DID
+    let newSeed = process.env.REACT_APP_CERAMIC_SEED;
+    if (!process.env.REACT_APP_CERAMIC_SEED) {
+      console.warn("REACT_APP_CERAMIC_SEED not found in .env, generating a new seed..");
+      newSeed = toString(randomBytes(32), "base16");
+      console.log(`Seed generated. Save this in your .env as REACT_APP_CERAMIC_SEED=${newSeed}`);
+      process.env.REACT_APP_CERAMIC_SEED = newSeed;
+    }
     const did = new DID({
       provider: new Ed25519Provider(fromString(newSeed, "base16")),
       resolver: getResolver(),
     });
     await did.authenticate();
-    const ceramic = new CeramicClient("https://ceramic-clay.3boxlabs.com");
+
+    const ceramic = new CeramicClient(process.env.CERAMIC_URL || "https://ceramic-clay.3boxlabs.com");
     ceramic.did = did;
-    const manager = new ModelManager(ceramic);
-    setCeramicManager(manager);
+    console.log({ did });
 
-    const noteSchemaID = await manager.createSchema("SimpleNote", {
-      $schema: "http://json-schema.org/draft-07/schema#",
-      title: "SimpleNote",
-      type: "object",
-      properties: {
-        text: {
-          type: "string",
-          title: "text",
-          maxLength: 4000,
-        },
-      },
-    });
-    setNoteSchema(noteSchemaID);
+    const model = new DataModel({ ceramic, model: modelAliases });
+    setModel(model);
+    const store = new DIDDataStore({ ceramic, model });
+    setStore(store);
 
-    // Create the definition using the created schema ID
-    await manager.createDefinition("myNote", {
-      name: "My note",
-      description: "A simple text note",
-      schema: manager.getSchemaURL(noteSchemaID),
-    });
-    console.log("Ceramic: Created definition myNote");
+    const exampleNote = await model.loadTile("exampleNote");
+    console.log("loaded note", exampleNote);
+
+    const note = await store.get("myNote");
+    if (note) {
+      console.log({ note });
+      setPrevNote(note.text);
+    }
+
+    const addresses = await window.ethereum.enable();
+    console.log(addresses);
+    const authProvider = new EthereumAuthProvider(window.ethereum, addresses[0]);
+    const client = new WebClient({ ceramic: "testnet-clay", connectNetwork: "testnet-clay" });
+    const did2 = await client.authenticate(authProvider);
+    console.log({ did2 });
+    // A SelfID instance can only be created with an authenticated DID
+    // const self = new SelfID({ client, did2 });
+    // await self.set("basicProfile", { name: "Alice" });
   };
 
   const createNote = async () => {
     console.log("createNote ", inputNote);
-    if (!noteSchema) return;
-    await ceramicManager.createTile(
-      "exampleNote",
-      { text: "A simple note" },
-      { schema: ceramicManager.getSchemaURL(noteSchema) },
-    );
-    console.log("create new note Ceramnic Tile");
+    // const newNote = await model.createTile("SimpleNote", { text: "My new note" });
+    await store.set("myNote", { text: inputNote });
+    const note = await store.get("myNote");
+    if (note) {
+      console.log({ note });
+      setPrevNote(note.text);
+    }
+  };
+
+  const getNote = async () => {
+    const note = await store.get("myNote");
+    console.log({ note });
   };
 
   return (
@@ -94,6 +114,9 @@ function Home() {
           </a>{" "}
           for easier styling.
         </span>
+        <div>
+          <Typography.Title level={3}>Previous Note from Ceramic: {prevNote}</Typography.Title>
+        </div>
         <Form style={{ margin: "2em 12em" }} layout="vertical" name="createForm" autoComplete="off">
           <Form.Item name="note" label="Note">
             <Input
@@ -108,6 +131,9 @@ function Home() {
           </Form.Item>
           <Button ml="0.5rem" onClick={createNote} px="1.25rem" fontSize="md">
             Create New Note
+          </Button>
+          <Button ml="0.5rem" onClick={getNote} px="1.25rem" fontSize="md">
+            Refresh
           </Button>
         </Form>
       </div>
