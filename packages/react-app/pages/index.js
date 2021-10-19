@@ -30,7 +30,7 @@ import modelAliases from "../model.json";
 function Home() {
   const context = useContext(Web3Context);
   const [inputNote, setInputNote] = useState("");
-  const [model, setModel] = useState();
+  const [profile, setProfile] = useState();
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
@@ -44,61 +44,87 @@ function Home() {
     // console.log(modelAliases);
     // Create and authenticate the DID
     let newSeed = process.env.REACT_APP_CERAMIC_SEED;
-    if (!process.env.REACT_APP_CERAMIC_SEED) {
-      console.warn("REACT_APP_CERAMIC_SEED not found in .env, generating a new seed..");
-      newSeed = toString(randomBytes(32), "base16");
-      console.log(`Seed generated. Save this in your .env as REACT_APP_CERAMIC_SEED=${newSeed}`);
-      process.env.REACT_APP_CERAMIC_SEED = newSeed;
-    }
-    const did = new DID({
-      provider: new Ed25519Provider(fromString(newSeed, "base16")),
-      resolver: getResolver(),
-    });
-    await did.authenticate();
+    // if (!process.env.REACT_APP_CERAMIC_SEED) {
+    //   console.warn("REACT_APP_CERAMIC_SEED not found in .env, generating a new seed..");
+    //   newSeed = toString(randomBytes(32), "base16");
+    //   console.log(`Seed generated. Save this in your .env as REACT_APP_CERAMIC_SEED=${newSeed}`);
+    //   process.env.REACT_APP_CERAMIC_SEED = newSeed;
+    // }
+    // const did = new DID({
+    //   provider: new Ed25519Provider(fromString(newSeed, "base16")),
+    //   resolver: getResolver(),
+    // });
+    // await did.authenticate();
 
-    const ceramic = new CeramicClient(process.env.CERAMIC_URL || "https://ceramic-clay.3boxlabs.com");
-    ceramic.did = did;
-    console.log({ did });
+    // const ceramic = new CeramicClient(process.env.CERAMIC_URL || "https://ceramic-clay.3boxlabs.com");
+    // ceramic.did = did;
+    // console.log({ did });
 
-    const model = new DataModel({ ceramic, model: modelAliases });
-    setModel(model);
-    const store = new DIDDataStore({ ceramic, model });
-    setStore(store);
+    // const model = new DataModel({ ceramic, model: modelAliases });
+    // setModel(model);
+    // const store = new DIDDataStore({ ceramic, model });
+    // setStore(store);
 
-    const exampleNote = await model.loadTile("exampleNote");
-    console.log("loaded note", exampleNote);
+    // const exampleNote = await model.loadTile("exampleNote");
+    // console.log("loaded note", exampleNote);
 
-    const note = await store.get("myNote");
-    if (note) {
-      console.log({ note });
-      setPrevNote(note.text);
-    }
+    // const note = await store.get("myNote");
+    // if (note) {
+    //   console.log({ note });
+    //   setPrevNote(note.text);
+    // }
 
     const addresses = await window.ethereum.enable();
     console.log(addresses);
-    const authProvider = new EthereumAuthProvider(window.ethereum, addresses[0]);
-    const client = new WebClient({ ceramic: "testnet-clay", connectNetwork: "testnet-clay" });
-    const did2 = await client.authenticate(authProvider);
-    console.log({ did2 });
-    // A SelfID instance can only be created with an authenticated DID
-    // const self = new SelfID({ client, did2 });
-    // await self.set("basicProfile", { name: "Alice" });
+    // const authProvider = new EthereumAuthProvider(window.ethereum, addresses[0]);
+    // const client = new WebClient({ ceramic: "testnet-clay", connectNetwork: "testnet-clay", model: modelAliases });
+    // const did = await client.authenticate(authProvider);
+    // console.log({ did });
+    // // A SelfID instance can only be created with an authenticated DID
+    // const self = new SelfID({ client, did });
+    const self = await SelfID.authenticate({
+      authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
+      ceramic: "testnet-clay",
+      connectNetwork: "testnet-clay",
+      model: modelAliases,
+    });
+    console.log({ self });
+    setProfile(self);
+    await self.set("basicProfile", { name: "Alice" });
+    console.log(await self.get("basicProfile"));
+    console.log(self.id);
   };
 
   const createNote = async () => {
     console.log("createNote ", inputNote);
+
+    const note = await profile.get("myNote");
+    console.log({ note });
+    const test = await profile.client.ceramic.did?.createDagJWE(
+      {
+        note: {
+          text: "hello",
+        },
+      },
+      ["did:3:kjzl6cwe1jw14af9j9s5mer7pucy92k27ghn1ugya0qv8o1bg7pvoizkghze36n"],
+    );
+    console.log({ test });
+    setStore(test);
+    await profile.set("myNote", { text: JSON.stringify(test) });
     // const newNote = await model.createTile("SimpleNote", { text: "My new note" });
-    await store.set("myNote", { text: inputNote });
-    const note = await store.get("myNote");
-    if (note) {
-      console.log({ note });
-      setPrevNote(note.text);
-    }
+    // await store.set("myNote", { text: inputNote });
+    // const note = await store.get("myNote");
   };
 
   const getNote = async () => {
-    const note = await store.get("myNote");
+    const basic = await profile.get("basicProfile");
+    console.log({ basic });
+    const note = await profile.get("myNote");
     console.log({ note });
+    const jweObj = JSON.parse(note.text);
+    console.log({ jweObj });
+    const res = await profile.client.ceramic.did?.decryptDagJWE(jweObj);
+    console.log({ res });
   };
 
   return (

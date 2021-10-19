@@ -6,7 +6,11 @@ const { Ed25519Provider } = require("key-did-provider-ed25519");
 const { getResolver } = require("key-did-resolver");
 const { fromString, toString } = require("uint8arrays");
 const { randomBytes } = require("@stablelib/random");
+
 const schemas = require("./schemas");
+const basicProfile = require("@datamodels/identity-profile-basic");
+const cryptoAccounts = require("@datamodels/identity-accounts-crypto");
+const webAccounts = require("@datamodels/identity-accounts-web");
 
 async function makeCeramicClient() {
   let newSeed = process.env.REACT_APP_CERAMIC_SEED;
@@ -23,7 +27,11 @@ async function makeCeramicClient() {
   await did.authenticate();
   const ceramic = new CeramicClient(process.env.CERAMIC_URL || "https://ceramic-clay.3boxlabs.com");
   ceramic.did = did;
+
   const manager = new ModelManager(ceramic);
+  manager.addJSONModel(basicProfile.model);
+  manager.addJSONModel(cryptoAccounts.model);
+  manager.addJSONModel(webAccounts.model);
   for (const [schemaName, schema] of Object.entries(schemas)) {
     console.log(schemaName, schema);
     const schemaId = await manager.createSchema(schemaName, schema);
