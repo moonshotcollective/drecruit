@@ -24,8 +24,14 @@ import {
   Space,
   PageHeader,
 } from "antd";
-const { randomBytes } = require("@stablelib/random");
+import { randomBytes } from "@stablelib/random";
+
 import modelAliases from "../model.json";
+
+export const CERAMIC_TESTNET = "testnet-clay";
+export const CERAMIC_TESTNET_NODE_URL = "https://ceramic-clay.3boxlabs.com";
+export const CERAMIC_MAINNET_NODE_URL = "https://gateway.ceramic.network";
+export const CERAMIC_LOCAL_NODE_URL = "http://localhost:7007";
 
 function Home() {
   const context = useContext(Web3Context);
@@ -34,58 +40,17 @@ function Home() {
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
-  //   console.log(`🗄 context context:`, context);
-
   useEffect(() => {
     init();
   }, []);
 
   const init = async () => {
-    // console.log(modelAliases);
-    // Create and authenticate the DID
-    let newSeed = process.env.REACT_APP_CERAMIC_SEED;
-    // if (!process.env.REACT_APP_CERAMIC_SEED) {
-    //   console.warn("REACT_APP_CERAMIC_SEED not found in .env, generating a new seed..");
-    //   newSeed = toString(randomBytes(32), "base16");
-    //   console.log(`Seed generated. Save this in your .env as REACT_APP_CERAMIC_SEED=${newSeed}`);
-    //   process.env.REACT_APP_CERAMIC_SEED = newSeed;
-    // }
-    // const did = new DID({
-    //   provider: new Ed25519Provider(fromString(newSeed, "base16")),
-    //   resolver: getResolver(),
-    // });
-    // await did.authenticate();
-
-    // const ceramic = new CeramicClient(process.env.CERAMIC_URL || "https://ceramic-clay.3boxlabs.com");
-    // ceramic.did = did;
-    // console.log({ did });
-
-    // const model = new DataModel({ ceramic, model: modelAliases });
-    // setModel(model);
-    // const store = new DIDDataStore({ ceramic, model });
-    // setStore(store);
-
-    // const exampleNote = await model.loadTile("exampleNote");
-    // console.log("loaded note", exampleNote);
-
-    // const note = await store.get("myNote");
-    // if (note) {
-    //   console.log({ note });
-    //   setPrevNote(note.text);
-    // }
-
     const addresses = await window.ethereum.enable();
     console.log(addresses);
-    // const authProvider = new EthereumAuthProvider(window.ethereum, addresses[0]);
-    // const client = new WebClient({ ceramic: "testnet-clay", connectNetwork: "testnet-clay", model: modelAliases });
-    // const did = await client.authenticate(authProvider);
-    // console.log({ did });
-    // // A SelfID instance can only be created with an authenticated DID
-    // const self = new SelfID({ client, did });
     const self = await SelfID.authenticate({
       authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-      ceramic: "testnet-clay",
-      connectNetwork: "testnet-clay",
+      ceramic: CERAMIC_TESTNET,
+      connectNetwork: CERAMIC_TESTNET,
       model: modelAliases,
     });
     console.log({ self });
@@ -106,9 +71,19 @@ function Home() {
           text: "hello",
         },
       },
-      ["did:3:kjzl6cwe1jw14af9j9s5mer7pucy92k27ghn1ugya0qv8o1bg7pvoizkghze36n"],
+      [
+        // swap
+        "did:3:kjzl6cwe1jw14af9j9s5mer7pucy92k27ghn1ugya0qv8o1bg7pvoizkghze36n",
+        // dev
+        "did:3:kjzl6cwe1jw149l83btp3gcv9pukggag54zpbkv8n0zc1osdnh5y7ttm9xd6ff1",
+        // dev2
+        "did:3:kjzl6cwe1jw14ak540gcaypdzvx8fjwluuokafdtbxhligrvpoizmav4tjupaat",
+      ],
     );
-    console.log({ test });
+    const testSignature = await profile.client.ceramic.did?.createDagJWS(test, {
+      did: profile.id,
+    });
+    const testSignatureCid = testSignature.jws.link.toString();
     setStore(test);
     await profile.set("myNote", { text: JSON.stringify(test) });
     // const newNote = await model.createTile("SimpleNote", { text: "My new note" });
@@ -117,9 +92,13 @@ function Home() {
   };
 
   const getNote = async () => {
+    const core = new Core({
+      ceramic: CERAMIC_TESTNET,
+      model: modelAliases,
+    });
     const basic = await profile.get("basicProfile");
     console.log({ basic });
-    const note = await profile.get("myNote");
+    const note = await core.get("myNote", "did:3:kjzl6cwe1jw149l83btp3gcv9pukggag54zpbkv8n0zc1osdnh5y7ttm9xd6ff1");
     console.log({ note });
     const jweObj = JSON.parse(note.text);
     console.log({ jweObj });
