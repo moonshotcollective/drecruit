@@ -27,11 +27,7 @@ import {
 import { randomBytes } from "@stablelib/random";
 
 import modelAliases from "../model.json";
-
-export const CERAMIC_TESTNET = "testnet-clay";
-export const CERAMIC_TESTNET_NODE_URL = "https://ceramic-clay.3boxlabs.com";
-export const CERAMIC_MAINNET_NODE_URL = "https://gateway.ceramic.network";
-export const CERAMIC_LOCAL_NODE_URL = "http://localhost:7007";
+import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
 
 function Home() {
   const context = useContext(Web3Context);
@@ -92,10 +88,7 @@ function Home() {
   };
 
   const getNote = async () => {
-    const core = new Core({
-      ceramic: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
+    const core = ceramicCoreFactory();
     const basic = await profile.get("basicProfile");
     console.log({ basic });
     const note = await core.get("myNote", "did:3:kjzl6cwe1jw149l83btp3gcv9pukggag54zpbkv8n0zc1osdnh5y7ttm9xd6ff1");
