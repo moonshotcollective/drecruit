@@ -25,7 +25,6 @@ const EditProfilePage = () => {
 
   const init = async () => {
     const addresses = await window.ethereum.enable();
-    console.log(addresses);
     const self = await SelfID.authenticate({
       authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
       ceramic: CERAMIC_TESTNET_NODE_URL,
@@ -34,11 +33,55 @@ const EditProfilePage = () => {
     });
     setMySelf(self);
     setAddress(addresses[0]);
+    return self;
   };
 
   useEffect(() => {
     init();
   }, []);
+
+  useEffect(() => {
+    // fetch from Ceramic
+    (async () => {
+      if (address) {
+        const core = ceramicCoreFactory();
+        let userDID;
+        try {
+          userDID = await core.getAccountDID(address + "@eip155:1");
+        } catch (error) {
+          console.log(error);
+          const profile = await init();
+          console.log({ profile });
+          userDID = profile.id;
+        }
+        if (userDID) {
+          setDid(userDID);
+          const result = await core.get("basicProfile", userDID);
+          console.log({ result });
+          Object.entries(result).forEach(([key, value]) => {
+            console.log({ key, value });
+            if (["image", "background"].includes(key)) {
+              const {
+                original: { src: url },
+              } = value;
+              const match = url.match(/^ipfs:\/\/(.+)$/);
+              if (match) {
+                const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
+                if (key === "image") {
+                  setImageURL(ipfsUrl);
+                }
+                if (key === "background") {
+                  setBackgroundURL(ipfsUrl);
+                }
+              }
+            } else {
+              setValue(key, value);
+            }
+          });
+        }
+      }
+    })();
+  }, [address]);
 
   const onFileChange = useCallback(event => {
     const input = event.target;
@@ -59,94 +102,50 @@ const EditProfilePage = () => {
     reader.readAsDataURL(file);
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (address) {
-        const core = ceramicCoreFactory();
-        let profile = await core.get("basicProfile", address + "@eip155:1");
-        setValue("description", profile?.description);
-        setValue("name", profile?.name);
-      }
-    })();
-  }, [address, setValue]);
-
-  useEffect(() => {
-    // fetch from Ceramic
-    (async () => {
-      if (address) {
-        const core = ceramicCoreFactory();
-        const did = await core.getAccountDID(address + "@eip155:1");
-        if (did) {
-          setDid(did);
-          const result = await core.get("basicProfile", did);
-          Object.entries(result).forEach(([key, object]) => {
-            let value = object;
-            if (["image", "background"].includes(key)) {
-              const {
-                original: { src: url },
-              } = value;
-              value = url;
-              const match = url.match(/^ipfs:\/\/(.+)$/);
-              if (match) {
-                const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
-                value = ipfsUrl;
-              }
-              if (key === "image") {
-                setImageURL(value);
-              }
-              if (key === "background") {
-                setBackgroundURL(value);
-              }
-            } else {
-              setValue(key, value);
-            }
-          });
-        }
-      }
-    })();
-  }, [address, setValue]);
-
   const onSubmit = async values => {
     console.log(values);
     const formData = new FormData();
     const [imageFile] = values.image;
     const [backgroundFile] = values.background;
-    if (image || background) {
-      if (image) {
-        formData.append("image", imageFile);
-      }
-      if (background) {
-        formData.append("background", backgroundFile);
-      }
-      const cids = await fetch("/api/storage", { method: "POST", body: formData })
-        .then(r => r.json())
-        .then(response => {
-          return response.cids;
-        });
-      // .finally(() => {
-      //   setProgress(false);
-      // });
-      console.log({ cids });
-      // const cids = await result.json();
-      const refs = { image: image.current, background: background.current };
-      ["image", "background"].forEach(key => {
-        console.log(cids[key]);
-        if (cids[key]) {
-          values[key] = {
-            original: {
-              src: `ipfs://${cids[key]}`,
-              mimeType: "image/*",
-              // TODO: change hardcoded width & height
-              width: 200,
-              height: 200,
-            },
-          };
-        } else {
-          delete values[key];
-        }
-      });
+    if (image && imageFile) {
+      formData.append("image", imageFile);
     }
-    return mySelf.set("basicProfile", values);
+    if (background && backgroundFile) {
+      formData.append("background", backgroundFile);
+    }
+    const cids = await fetch("/api/storage", { method: "POST", body: formData })
+      .then(r => r.json())
+      .then(response => {
+        return response.cids;
+      });
+    // .finally(() => {
+    //   setProgress(false);
+    // });
+    const refs = { image: image.current, background: background.current };
+
+    ["image", "background"].forEach(key => {
+      console.log(cids[key]);
+      if (cids[key]) {
+        values[key] = {
+          original: {
+            src: `ipfs://${cids[key]}`,
+            mimeType: "image/*",
+            // TODO: change hardcoded width & height
+            width: 200,
+            height: 200,
+          },
+        };
+      } else {
+        delete values[key];
+      }
+    });
+    if (!imageFile) {
+      delete values["image"];
+    }
+    if (!backgroundFile) {
+      delete values["background"];
+    }
+    return mySelf.client.dataStore.merge("basicProfile", values);
   };
   return (
     <Box margin="0 auto" maxWidth={1100} transition="0.5s ease-out">

@@ -12,7 +12,7 @@ const basicProfile = require("@datamodels/identity-profile-basic");
 const cryptoAccounts = require("@datamodels/identity-accounts-crypto");
 const webAccounts = require("@datamodels/identity-accounts-web");
 
-async function makeCeramicClient() {
+async function publishModel() {
   let newSeed = process.env.REACT_APP_CERAMIC_SEED;
   if (!process.env.REACT_APP_CERAMIC_SEED) {
     console.warn("REACT_APP_CERAMIC_SEED not found in .env, generating a new seed..");
@@ -35,12 +35,11 @@ async function makeCeramicClient() {
   for (const [schemaName, schema] of Object.entries(schemas)) {
     console.log(schemaName, schema);
     const schemaId = await manager.createSchema(schemaName, schema);
-    await manager.createDefinition("myNote", {
-      name: "My note",
-      description: "A simple text note",
+    await manager.createDefinition("privateProfile", {
+      name: "Private profile",
+      description: "Private encrypted profile",
       schema: manager.getSchemaURL(schemaId),
     });
-    await manager.createTile("exampleNote", { text: "A simple note" }, { schema: manager.getSchemaURL(schemaId) });
   }
 
   const model = await manager.toPublished();
@@ -49,5 +48,5 @@ async function makeCeramicClient() {
 }
 
 (async () => {
-  await makeCeramicClient();
+  await publishModel();
 })();
