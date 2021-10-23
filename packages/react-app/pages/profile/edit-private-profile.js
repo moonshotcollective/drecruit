@@ -62,25 +62,27 @@ const EditProfilePage = () => {
         if (userDID) {
           setDid(userDID);
           const result = await core.get("privateProfile", userDID);
-          const decrypted = await mySelf.client.ceramic.did?.decryptDagJWE(JSON.parse(result.encrypted));
-          if (decrypted) {
-            Object.entries(decrypted).forEach(([key, value]) => {
-              console.log({ key, value });
-              if (["image"].includes(key)) {
-                const {
-                  original: { src: url },
-                } = value;
-                const match = url.match(/^ipfs:\/\/(.+)$/);
-                if (match) {
-                  const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
-                  if (key === "image") {
-                    setImageURL(ipfsUrl);
+          if (result) {
+            const decrypted = await mySelf.client.ceramic.did?.decryptDagJWE(JSON.parse(result.encrypted));
+            if (decrypted) {
+              Object.entries(decrypted).forEach(([key, value]) => {
+                console.log({ key, value });
+                if (["image"].includes(key)) {
+                  const {
+                    original: { src: url },
+                  } = value;
+                  const match = url.match(/^ipfs:\/\/(.+)$/);
+                  if (match) {
+                    const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
+                    if (key === "image") {
+                      setImageURL(ipfsUrl);
+                    }
                   }
+                } else {
+                  setValue(key, value);
                 }
-              } else {
-                setValue(key, value);
-              }
-            });
+              });
+            }
           }
         }
       }

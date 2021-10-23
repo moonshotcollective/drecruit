@@ -3,13 +3,13 @@ import { Box } from "@chakra-ui/layout";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
+import { useRouter } from "next/router";
 // import Image from "next/image";
 import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
-import { useHistory } from "react-router";
 
 const EditProfilePage = () => {
-  const history = useHistory();
+  const router = useRouter();
   const [mySelf, setMySelf] = useState();
   const [did, setDid] = useState();
   const [address, setAddress] = useState();
@@ -108,38 +108,41 @@ const EditProfilePage = () => {
     const formData = new FormData();
     const [imageFile] = values.image;
     const [backgroundFile] = values.background;
-    if (image && imageFile) {
-      formData.append("image", imageFile);
-    }
-    if (background && backgroundFile) {
-      formData.append("background", backgroundFile);
-    }
-    const cids = await fetch("/api/storage", { method: "POST", body: formData })
-      .then(r => r.json())
-      .then(response => {
-        return response.cids;
-      });
-    // .finally(() => {
-    //   setProgress(false);
-    // });
-    const refs = { image: image.current, background: background.current };
-
-    ["image", "background"].forEach(key => {
-      console.log(cids[key]);
-      if (cids[key]) {
-        values[key] = {
-          original: {
-            src: `ipfs://${cids[key]}`,
-            mimeType: "image/*",
-            // TODO: change hardcoded width & height
-            width: 200,
-            height: 200,
-          },
-        };
-      } else {
-        delete values[key];
+    if (imageFile || backgroundFile) {
+      if (image && imageFile) {
+        formData.append("image", imageFile);
       }
-    });
+      if (background && backgroundFile) {
+        formData.append("background", backgroundFile);
+      }
+      const cids = await fetch("/api/storage", { method: "POST", body: formData })
+        .then(r => r.json())
+        .then(response => {
+          return response.cids;
+        });
+      // .finally(() => {
+      //   setProgress(false);
+      // });
+      const refs = { image: image.current, background: background.current };
+
+      ["image", "background"].forEach(key => {
+        console.log(cids[key]);
+        if (cids[key]) {
+          values[key] = {
+            original: {
+              src: `ipfs://${cids[key]}`,
+              mimeType: "image/*",
+              // TODO: change hardcoded width & height
+              width: 200,
+              height: 200,
+            },
+          };
+        } else {
+          delete values[key];
+        }
+      });
+    }
+
     if (!imageFile) {
       delete values["image"];
     }
@@ -147,7 +150,7 @@ const EditProfilePage = () => {
       delete values["background"];
     }
     await mySelf.client.dataStore.merge("basicProfile", values);
-    return history.push("/profile/edit-private-profile");
+    return router.push("/profile/edit-private-profile");
   };
   return (
     <Box margin="0 auto" maxWidth={1100} transition="0.5s ease-out">
