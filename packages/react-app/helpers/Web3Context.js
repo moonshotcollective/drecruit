@@ -20,7 +20,7 @@ const { ethers } = require("ethers");
 export const Web3Context = React.createContext({});
 
 // provider Component that wraps the entire app and provides context variables
-export function Web3Provider({ children, network = "localhost", DEBUG = true, NETWORKCHECK = true, ...props }) {
+export function Web3Provider({ children, network = "localhost", DEBUG = false, NETWORKCHECK = true, ...props }) {
   // for Nextjs Builds, return null until "window" is available
   if (!global.window) {
     return null;
@@ -44,12 +44,13 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
         )
       : null;
   }, [navigator.onLine]);
-  const mainnetInfura = useMemo(() => {
-    if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
-    return navigator.onLine
-      ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
-      : null;
-  }, [navigator.onLine]);
+  //   const mainnetInfura = useMemo(() => {
+  //     if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
+  //     return navigator.onLine
+  //       ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
+  //       : null;
+  //   }, [navigator.onLine]);
+  const mainnetInfura = null;
   const localProvider = useMemo(() => {
     // 🏠 Your local provider is usually pointed at your local blockchain
     const localProviderUrl = targetNetwork.rpcUrl;
