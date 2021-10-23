@@ -1,15 +1,11 @@
 const PrivateProfileSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",
-  title: "PrivateEmail",
+  title: "PrivateProfile",
   type: "object",
   properties: {
-    email: {
+    encrypted: {
       type: "string",
-      title: "email",
-    },
-    phone: {
-      type: "string",
-      title: "phone",
+      title: "encrypted",
     },
   },
 };
