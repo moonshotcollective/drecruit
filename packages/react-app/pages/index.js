@@ -62,10 +62,14 @@ function Home() {
 
   const saveEmail = async () => {
     // approval
-    const devMapping = {
-      "0xDEV1": ["did:3:approved-recruiter1", "did:3:approved-recruiter2"],
-      "0xDEV2": ["did:3:approved-recruiter1", "did:3:approved-recruiter3"],
-    };
+    // const devMapping = {
+    //   "0xDEV1": ["did:3:approved-recruiter1", "did:3:approved-recruiter2"],
+    //   "0xDEV2": ["did:3:approved-recruiter1", "did:3:approved-recruiter3"],
+    // };
+    // // claim
+    // claimStakeFromRecruiter("did:3:approved-recruiter1");
+    // const approvedRecruiters = await contract.get("loggedInDevAddress");
+    // // ["did of approved recruiters"]
     const test = await profile.client.ceramic.did?.createDagJWE(
       {
         email: inputEmail,
@@ -76,12 +80,9 @@ function Home() {
         devMapping[address],
       ],
     );
-    // claim
-    claimStakeFromRecruiter("did:3:approved-recruiter1");
+
     const privateProfile = await profile.get("privateProfile");
     console.log({ privateProfile });
-    const approvedRecruiters = await contract.get("loggedInDevAddress");
-    // ["did of approved recruiters"]
 
     console.log({ test });
     const testSignature = await profile.client.ceramic.did?.createDagJWS(test, {
