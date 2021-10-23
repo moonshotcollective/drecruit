@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const resumeSchema = new mongoose.Schema({
   bio: {
     type: Array
-  }, 
+  },
   experience: {
     type: Array
   },
