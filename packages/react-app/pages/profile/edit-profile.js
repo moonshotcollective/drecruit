@@ -6,9 +6,10 @@ import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 // import Image from "next/image";
 import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
+import { useHistory } from "react-router";
 
 const EditProfilePage = () => {
-  // TODO: store images on Web3.storage
+  const history = useHistory();
   const [mySelf, setMySelf] = useState();
   const [did, setDid] = useState();
   const [address, setAddress] = useState();
@@ -145,7 +146,8 @@ const EditProfilePage = () => {
     if (!backgroundFile) {
       delete values["background"];
     }
-    return mySelf.client.dataStore.merge("basicProfile", values);
+    await mySelf.client.dataStore.merge("basicProfile", values);
+    return history.push("/profile/edit-private-profile");
   };
   return (
     <Box margin="0 auto" maxWidth={1100} transition="0.5s ease-out">
@@ -236,7 +238,7 @@ const EditProfilePage = () => {
               <FormErrorMessage>{errors.url && errors.url.message}</FormErrorMessage>
             </FormControl>
             <FormControl isInvalid={errors.homeLocation}>
-              <FormLabel htmlFor="description">Location</FormLabel>
+              <FormLabel htmlFor="homeLocation">Location</FormLabel>
               <Input
                 placeholder="London"
                 borderColor="purple.500"
@@ -247,7 +249,7 @@ const EditProfilePage = () => {
               <FormErrorMessage>{errors.homeLocation && errors.homeLocation.message}</FormErrorMessage>
             </FormControl>
             <FormControl isInvalid={errors.residenceCountry}>
-              <FormLabel htmlFor="description">Country Code</FormLabel>
+              <FormLabel htmlFor="residenceCountry">Country Code</FormLabel>
               <Input
                 placeholder="UK"
                 borderColor="purple.500"

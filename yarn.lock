@@ -15818,6 +15818,11 @@ libp2p-crypto@~0.16.1:
     tweetnacl "^1.0.0"
     ursa-optional "~0.10.0"
 
+libphonenumber-js@^1.9.38:
+  version "1.9.38"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.9.38.tgz#d0388deebc95a8691382313d2f7dac2de2219387"
+  integrity sha512-7CCl9NZPYtX4JNXdvV5RnrQqrXp7LsLOTpYSUfEJBiySEnC5hysdwouXAuWgPDB55D/fpKm4RjM2/tUUh8kuoA==
+
 liftoff@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/liftoff/-/liftoff-3.1.0.tgz#c9ba6081f908670607ee79062d700df062c52ed3"
@@ -20507,6 +20512,14 @@ react-style-singleton@^2.1.0:
     invariant "^2.2.4"
     tslib "^1.0.0"
 
+react-world-flags@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/react-world-flags/-/react-world-flags-1.4.0.tgz#1634f9e39510309d94675cb1eaee37c9ecc44d28"
+  integrity sha512-SkOzl/v6LYBphJNSeeQXTogAiLZN1Yy2HFx2Qjda/82MCWFimj9cenmOXASbfbKeqFbo/17M8HauY6mfzWmTDw==
+  dependencies:
+    svg-country-flags "^1.2.7"
+    world-countries "^4.0.0"
+
 react@^16.8.6:
   version "16.14.0"
   resolved "https://registry.yarnpkg.com/react/-/react-16.14.0.tgz#94d776ddd0aaa37da3eda8fc5b6b18a4c9a3114d"
@@ -22131,6 +22144,13 @@ stacktrace-parser@0.1.10, stacktrace-parser@^0.1.10:
   dependencies:
     type-fest "^0.7.1"
 
+states-cities-db@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/states-cities-db/-/states-cities-db-1.4.1.tgz#8bf2a6c2bfb4174fc536eda3b31ea94495846d4b"
+  integrity sha512-d98cuhrFXRu2uolmDaD+57SkaCR36rAfIMuJcvUaeo8NXQ7+xNu75LDwzKFhSyoyPsg08Q5YeEu3ZPBwiLPFyQ==
+  dependencies:
+    lodash "^4.17.4"
+
 static-extend@^0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/static-extend/-/static-extend-0.1.2.tgz#60809c39cbff55337226fd5e0b520f341f1fb5c6"
@@ -22636,6 +22656,11 @@ sver-compat@^1.5.0:
   dependencies:
     es6-iterator "^2.0.1"
     es6-symbol "^3.1.1"
+
+svg-country-flags@^1.2.7:
+  version "1.2.10"
+  resolved "https://registry.yarnpkg.com/svg-country-flags/-/svg-country-flags-1.2.10.tgz#b1b94e9f08f065d7b3d0ff9ab359898edd4dd3b0"
+  integrity sha512-xrqwo0TYf/h2cfPvGpjdSuSguUbri4vNNizBnwzoZnX0xGo3O5nGJMlbYEp7NOYcnPGBm6LE2axqDWSB847bLw==
 
 svg-parser@^2.0.2:
   version "2.0.4"
@@ -25011,6 +25036,11 @@ worker-rpc@^0.1.0:
   integrity sha512-P1WjMrUB3qgJNI9jfmpZ/htmBEjFh//6l/5y8SD9hg1Ef5zTTVVoRjTrTEzPrNBQvmhMxkoTsjOXN10GWU7aCg==
   dependencies:
     microevent.ts "~0.1.1"
+
+world-countries@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/world-countries/-/world-countries-4.0.0.tgz#a14757e2240d8c16249e3c6e6cdcd61d119a042d"
+  integrity sha512-LsFFYmggquj0U+i7VUaJOZYz5F4QNu+oceGw8odnyVHMT2LxYSdVncqdouOEnq1esr7yCakp9+3BZTztuSw1Pg==
 
 wrap-ansi@^2.0.0:
   version "2.1.0"
