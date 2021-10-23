@@ -76,8 +76,11 @@ fastify.get('/unlock/:tokenId', async (request, reply) => {
     }
     const userBalance = dRecruitContract.balanceOf(userAddress, request.params.tokenId)
     if (userBalance >= 1) {
+      // this will ideally be changed to fetching the CID from the stream, and the stream ID is stored on-chain
       const result = await Info.findOne({ tokenId: request.params.tokenId }).lean()
-      return { message: await ipfs.dag.get(result.contentId) }
+      const jwe = await ipfs.dag.get(result.contentId)
+      const cleartext = await did.decryptDagJWE(jwe)
+      return { message: cleartext }
     } else {
       return { statusCode: 401, message: 'Address does not hold required tokens' }
     }
