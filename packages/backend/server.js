@@ -3,13 +3,15 @@ const fastify = require('fastify')({ logger: true })
 const mongoose = require('mongoose')
 const { ethers } = require('ethers')
 const { nanoid } = require('nanoid')
-const { Auth } = require('./models/schema.js')
+const { Auth, Info } = require('./models')
 
 fastify.register(require('fastify-secure-session'), {
   cookieName: 'drecruit-session',
-  key: process.env.COOKIE_SECRET,
+  key: process.env.COOKIE_KEY,
   cookie: {
-    path: '/'
+    path: '/',
+    httpOnly: true,
+    maxAge: 1000 * 24 * 60 * 60 * 3 // 3 days
     // options for setCookie, see https://github.com/fastify/fastify-cookie
   }
 })
@@ -38,12 +40,26 @@ fastify.get('/verify/:address', async (request, reply) => {
       return { statusCode: 400, message: 'Invalid address' }
     }
     const result = await Auth.findOne({ address: request.params.address }).lean()
+    if (!result) {
+      return { statusCode: 403, message: 'No nonce exists for address' }
+    }
     const decodedAddress = await ethers.utils.verifyMessage(result.message, request.body.signature)
     if (decodedAddress === request.params.address) {
-      request.session.set('address', result.address)
+      request.session.set('address', decodedAddress)
       return { statusCode: 200 }
     } else {
       return { statusCode: 401 }
+    }
+  } catch (err) {
+    fastify.log.error(err)
+    return { statusCode: 500 }
+  }
+})
+
+fastify.get('/unlock/:tokenId', async (request, reply) => {
+  try {
+    if (!/^0x[A-Za-z0-9]{40}$/.test(request.session.get('address'))) {
+      return { statusCode: 401, message: 'Invalid/missing address in session' } // validate that address exists in session
     }
   } catch (err) {
     fastify.log.error(err)
