@@ -9,11 +9,17 @@
   "author": "dRecruit (Moonshot Collective)",
   "license": "Apache-2.0",
   "dependencies": {
-    "@ceramicnetwork/core": "^1.7.0",
+    "@ceramicnetwork/core": "^1.8.0",
+    "@ceramicnetwork/key-did-resolver": "^0.2.2",
+    "blockcodec-to-ipld-format": "^2.0.0",
+    "dag-jose": "^1.0.0",
+    "dids": "^2.4.0",
     "dotenv": "^10.0.0",
     "ethers": "^5.5.1",
     "fastify": "^3.22.0",
     "fastify-secure-session": "^3.0.0",
+    "ipfs-core": "^0.11.1",
+    "key-did-provider-ed25519": "^1.1.0",
     "mongoose": "^6.0.11",
     "nanoid": "^3.1.30"
   },

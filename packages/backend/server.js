@@ -1,9 +1,21 @@
 require('dotenv').config()
 const fastify = require('fastify')({ logger: true })
 const mongoose = require('mongoose')
+const Ipfs = require('ipfs-core')
+const dagJose = require('dag-jose')
 const { ethers } = require('ethers')
 const { nanoid } = require('nanoid')
-const { Auth, Info } = require('./models')
+const { convert } = require('blockcodec-to-ipld-format')
+const { DID } = require('dids')
+const { Ed25519Provider } = require('key-did-provider-ed25519')
+const KeyDidResolver = require('key-did-resolver')
+const { Auth, Info, Resume } = require('./models')
+
+const dagJoseFormat = convert(dagJose)
+let ipfs
+
+const provider = new Ed25519Provider(Buffer.from((process.env.CERAMIC_SEED), 'hex'))
+const did = new DID({ provider, resolver: KeyDidResolver.getResolver() })
 
 fastify.register(require('fastify-secure-session'), {
   cookieName: 'drecruit-session',
@@ -58,8 +70,16 @@ fastify.get('/verify/:address', async (request, reply) => {
 
 fastify.get('/unlock/:tokenId', async (request, reply) => {
   try {
-    if (!/^0x[A-Za-z0-9]{40}$/.test(request.session.get('address'))) {
+    const userAddress = request.session.get('address')
+    if (!/^0x[A-Za-z0-9]{40}$/.test(userAddress)) {
       return { statusCode: 401, message: 'Invalid/missing address in session' } // validate that address exists in session
+    }
+    const userBalance = dRecruitContract.balanceOf(userAddress, request.params.tokenId)
+    if (userBalance >= 1) {
+      const result = await Info.findOne({ tokenId: request.params.tokenId }).lean()
+      return { message: await ipfs.dag.get(result.contentId) }
+    } else {
+      return { statusCode: 401, message: 'Address does not hold required tokens' }
     }
   } catch (err) {
     fastify.log.error(err)
@@ -71,6 +91,8 @@ fastify.get('/unlock/:tokenId', async (request, reply) => {
 const start = async () => {
   try {
     await mongoose.connect(process.env.DB_URL)
+    ipfs = await Ipfs.create({ ipld: { formats: [dagJoseFormat] } })
+    await did.authenticate()
     fastify.log.info('DB connected')
     await fastify.listen(3000)
   } catch (err) {
