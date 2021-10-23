@@ -1,15 +1,18 @@
-const SimpleNoteSchema = {
+const PrivateProfileSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",
-  title: "SimpleNote",
+  title: "PrivateEmail",
   type: "object",
   properties: {
-    text: {
+    email: {
       type: "string",
-      title: "text",
-      maxLength: 4000,
+      title: "email",
+    },
+    phone: {
+      type: "string",
+      title: "phone",
     },
   },
 };
 module.exports = {
-  note: SimpleNoteSchema,
+  privateProfile: PrivateProfileSchema,
 };

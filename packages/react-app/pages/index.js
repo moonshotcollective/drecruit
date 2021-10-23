@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Core } from "@self.id/core";
+import { Code } from "@chakra-ui/react";
+import { Box, Heading, VStack } from "@chakra-ui/layout";
 import { Web3Context } from "../helpers/Web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ModelManager } from "@glazed/devtools";
@@ -31,7 +33,10 @@ import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
 
 function Home() {
   const context = useContext(Web3Context);
-  const [inputNote, setInputNote] = useState("");
+  const [inputEmail, setInputEmail] = useState("");
+  const [decryptedEmail, setDecryptedEmail] = useState("");
+  const [encryptedEmail, setEncryptedEmail] = useState("");
+  const [recipients, setRecipients] = useState([]);
   const [profile, setProfile] = useState();
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
@@ -51,52 +56,46 @@ function Home() {
     });
     console.log({ self });
     setProfile(self);
-    await self.set("basicProfile", { name: "Alice" });
     console.log(await self.get("basicProfile"));
     console.log(self.id);
   };
 
-  const createNote = async () => {
-    console.log("createNote ", inputNote);
-
-    const note = await profile.get("myNote");
-    console.log({ note });
+  const saveEmail = async () => {
+    const privateProfile = await profile.get("privateProfile");
+    console.log({ privateProfile });
     const test = await profile.client.ceramic.did?.createDagJWE(
       {
-        note: {
-          text: "hello",
-        },
+        email: inputEmail,
       },
       [
-        // swap
-        "did:3:kjzl6cwe1jw14af9j9s5mer7pucy92k27ghn1ugya0qv8o1bg7pvoizkghze36n",
-        // dev
-        "did:3:kjzl6cwe1jw149l83btp3gcv9pukggag54zpbkv8n0zc1osdnh5y7ttm9xd6ff1",
-        // dev2
-        "did:3:kjzl6cwe1jw14ak540gcaypdzvx8fjwluuokafdtbxhligrvpoizmav4tjupaat",
+        // logged-in user,
+        profile.id,
       ],
     );
+    console.log({ test });
     const testSignature = await profile.client.ceramic.did?.createDagJWS(test, {
       did: profile.id,
     });
     const testSignatureCid = testSignature.jws.link.toString();
+    console.log({ testSignatureCid });
     setStore(test);
-    await profile.set("myNote", { text: JSON.stringify(test) });
+    await profile.set("privateProfile", { email: JSON.stringify(test) });
+    setEncryptedEmail(JSON.stringify(test, null, 2));
     // const newNote = await model.createTile("SimpleNote", { text: "My new note" });
-    // await store.set("myNote", { text: inputNote });
-    // const note = await store.get("myNote");
+    // await store.set("privateProfile", { text: inputEmail });
+    // const note = await store.get("privateProfile");
   };
 
-  const getNote = async () => {
+  const decryptEmail = async () => {
     const core = ceramicCoreFactory();
     const basic = await profile.get("basicProfile");
-    console.log({ basic });
-    const note = await core.get("myNote", "did:3:kjzl6cwe1jw149l83btp3gcv9pukggag54zpbkv8n0zc1osdnh5y7ttm9xd6ff1");
-    console.log({ note });
-    const jweObj = JSON.parse(note.text);
+    const { email } = await core.get("privateProfile", profile.id);
+    setEncryptedEmail(email);
+    console.log({ email });
+    const jweObj = JSON.parse(email);
     console.log({ jweObj });
-    const res = await profile.client.ceramic.did?.decryptDagJWE(jweObj);
-    console.log({ res });
+    const { email: decryptedEmail } = await profile.client.ceramic.did?.decryptDagJWE(jweObj);
+    setDecryptedEmail(decryptedEmail);
   };
 
   return (
@@ -112,29 +111,64 @@ function Home() {
           </a>{" "}
           for easier styling.
         </span>
-        <div>
-          <Typography.Title level={3}>Previous Note from Ceramic: {prevNote}</Typography.Title>
-        </div>
         <Form style={{ margin: "2em 12em" }} layout="vertical" name="createForm" autoComplete="off">
-          <Form.Item name="note" label="Note">
+          <Form.Item name="email" label="Email">
             <Input
               size="large"
-              placeholder="Enter Note"
+              placeholder="Enter email"
               allowClear={true}
+              type="email"
               style={{
                 width: "100%",
               }}
-              onChange={e => setInputNote(e.target.value)}
+              onChange={e => setInputEmail(e.target.value)}
             />
           </Form.Item>
-          <Button ml="0.5rem" onClick={createNote} px="1.25rem" fontSize="md">
-            Create New Note
+          {/* <FormControl isInvalid={errors.candidates}>
+            <FormLabel htmlFor="candidates">Candidates</FormLabel>
+            {fields.map((field, index) => (
+              <HStack pb="1rem" justify="space-between">
+                <Text>Voter {index + 1}</Text>
+                <HStack>
+                  <InputGroup w="300px">
+                    <ControllerPlus
+                      key={field.id} // important to include key with field's id
+                      {...register(`candidates.${index}.value`)}
+                      transform={{
+                        input: (value: any) => {
+                          console.log(value);
+                          return value;
+                        },
+                        output: (e: any) => e.target.value,
+                      }}
+                      control={control}
+                    />
+                    <InputRightElement p="2.5" children={<QRCodeIcon />} />
+                  </InputGroup>
+                  <Icon _hover={{ cursor: "pointer" }} color="red.500" as={FiX} onClick={() => remove(index)} />
+                </HStack>
+              </HStack>
+            ))}
+            <FormErrorMessage>{errors.voteAllocation && errors.voteAllocation.message}</FormErrorMessage>
+          </FormControl> */}
+          <Button ml="0.5rem" onClick={saveEmail} px="1.25rem" fontSize="md">
+            Save Email
           </Button>
-          <Button ml="0.5rem" onClick={getNote} px="1.25rem" fontSize="md">
-            Refresh
+          <Button ml="0.5rem" onClick={decryptEmail} px="1.25rem" fontSize="md">
+            Decrypt Email
           </Button>
         </Form>
       </div>
+      <VStack p="20">
+        <Box>
+          <Heading size="md">Decrypted Email:</Heading>
+          <Code>{decryptedEmail}</Code>
+        </Box>
+        <Box>
+          <Heading size="md">Encrypted Email:</Heading>
+          <Code>{encryptedEmail}</Code>
+        </Box>
+      </VStack>
     </div>
   );
 }
