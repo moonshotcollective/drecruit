@@ -66,6 +66,7 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
     event RequestResume(address indexed requester, uint256 indexed id, uint256 stake);
     event ApproveRequest(address indexed approved, uint256 indexed id);
     event RejectRequest(address indexed rejected, uint256 indexed id);
+    event RevokeRequest(address indexed requester, uint256 indexed id);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     // solhint-disable-next-line no-empty-blocks
@@ -164,6 +165,20 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         }
     }
 
+    function rejectRequest(uint256 id, address account)
+        external
+    {
+        Resume memory _resume = balances[id];
+        require(_resume.submitter == msg.sender, "UNAUTHORIZED");
+        require(requests[id][account] != 0, "NOT_REQUESTED");
+        // solhint-disable-next-line avoid-low-level-calls
+        address(account).call{value: requests[id][account]}("");
+        requests[id][account] = 0; // save some gas
+        requesters[id].remove(account);
+        _mint(account, id, 1, "");
+        emit RejectRequest(account, id);
+    }
+
     function rejectRequests(uint256 id, address[] calldata accounts)
         external
     {
@@ -179,6 +194,18 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
             requesters[id].remove(accounts[i]);
             emit RejectRequest(accounts[i], id);
         }
+    }
+
+    function revokeRequest(uint256 id)
+        external
+    {
+        require(requests[id][msg.sender] != 0, "NOT_REQUESTED");
+        // solhint-disable-next-line avoid-low-level-calls
+        address(msg.sender).call{value: requests[id][msg.sender]}("");
+        requests[id][msg.sender] = 0; // save some gas
+        requesters[id].remove(msg.sender);
+        _mint(msg.sender, id, 1, "");
+        emit RejectRequest(msg.sender, id);
     }
 
     function _beforeTokenTransfer(
