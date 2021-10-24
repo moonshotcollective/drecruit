@@ -33,13 +33,16 @@ import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
 import { getNetwork, loadDRecruiterContract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
+import { HomeActions } from "../components/layout/HomeActions";
+import { ethers } from "ethers";
 
 function Home() {
   const context = useContext(Web3Context);
   const [inputEmail, setInputEmail] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [developerProfiles, setDeveloperProfiles] = useState([]);
-  const [profile, setProfile] = useState();
+  const [mySelf, setMySelf] = useState();
+  const [dRecruitContract, setDRecruitContract] = useState();
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
@@ -49,6 +52,8 @@ function Home() {
 
   const init = async () => {
     const { network } = await getNetwork();
+    const contract = await loadDRecruiterContract();
+    setDRecruitContract(contract);
     const addresses = await window.ethereum.enable();
     console.log(addresses);
     const self = await SelfID.authenticate({
@@ -58,9 +63,7 @@ function Home() {
       model: modelAliases,
     });
     console.log({ self });
-    setProfile(self);
-    const contract = await loadDRecruiterContract();
-    console.log({ contract });
+    setMySelf(self);
     const dRecruitDevelopers = await contract.getDevelopers();
     const core = ceramicCoreFactory();
     const developersDID = await Promise.all(
@@ -79,14 +82,22 @@ function Home() {
     console.log(developerProfiles);
   };
 
+  const handleRequestPrivateProfileUnlock = async (devAddress, privateProfile) => {
+    const tx = await dRecruitContract.privateProfileAccessRequest(devAddress, mySelf.id, {
+      value: ethers.utils.parseEther("0.1"),
+    });
+    const receipt = await tx.wait();
+    console.log({ receipt });
+  };
   const handlePrivateProfileUnlock = async privateProfile => {
-    const decrypted = await await profile.client.ceramic.did?.decryptDagJWE(privateProfile);
+    const decrypted = await await mySelf.client.ceramic.did?.decryptDagJWE(privateProfile);
     console.log({ decrypted });
     return decrypted;
   };
 
   return (
     <Layout>
+      <HomeActions contract={dRecruitContract} mySelf={mySelf} />
       <SimpleGrid columns={4} spacing={10}>
         {developerProfiles.map(({ did, basicProfile, webAccounts, privateProfile }) => {
           const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
@@ -103,8 +114,9 @@ function Home() {
               primaryAction="Unlock contact informations"
               secondaryAction="View contact informations"
               hasWebAccount={!!webAccounts}
-              self={profile}
+              self={mySelf}
               privateProfile={JSON.parse(privateProfile.encrypted)}
+              primaryActionOnClick={handleRequestPrivateProfileUnlock}
               secondaryActionOnClick={handlePrivateProfileUnlock}
             />
           );

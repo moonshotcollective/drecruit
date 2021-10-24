@@ -131,11 +131,17 @@ function MediaCard({
             </Stack>
           </Box>
         ) : (
-          <Box>
-            <Text>{privateProfile.ciphertext}</Text>
-          </Box>
+          <Text p="5" backgroundColor="gray.100" color="gray.900">
+            {privateProfile.ciphertext}
+          </Text>
         )}
-        <Button disabled={canView} w={"full"} mt={8} onClick={primaryActionOnClick}>
+        <Button
+          disabled={canView}
+          w={"full"}
+          mt={8}
+          // TODO: get dev main address
+          onClick={() => primaryActionOnClick("0xcd3B766CCDd6AE721141F452C550Ca635964ce71", privateProfile)}
+        >
           {canView ? "✔️ Informations already unlocked" : primaryAction}
         </Button>
       </Box>

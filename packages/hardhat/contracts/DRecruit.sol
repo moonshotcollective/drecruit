@@ -42,8 +42,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "hardhat/console.sol";
 
-contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable, PausableUpgradeable,
-    ERC1155BurnableUpgradeable, UUPSUpgradeable {
+contract DRecruit is
+    Initializable,
+    ERC1155Upgradeable,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    ERC1155BurnableUpgradeable,
+    UUPSUpgradeable
+{
     struct Resume {
         address submitter;
         uint256 fees;
@@ -55,13 +61,23 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public fee; // payable in wei units of ether
     uint256 public accumulatedFees;
-    address[] public developers;
     mapping(uint256 => Resume) public balances;
+
+    uint256 public recruiterBaseFee = 0.1 ether;
+    uint256 public developerBaseFee = 0.1 ether;
+    address[] public developers;
+    address[] public recruiters;
     mapping(address => string[]) public approvedRecruiters;
+    mapping(address => string[]) public requestedRecruiters;
 
     Counters.Counter public tokenId;
 
-    event NewDeveloper(address indexed developer, string indexed did);
+    event NewDeveloper(address indexed developer, string indexed developerDID);
+    event NewRecruiter(address indexed recruiter, string indexed recruiterDID);
+    event NewPrivateProfileAccessRequest(
+        address indexed recruiter,
+        string indexed recruiterDID
+    );
     event NewResume(address indexed submitter, uint256 indexed id, bytes hash);
     event UnlockResume(address indexed unlocker, uint256 indexed id);
 
@@ -102,34 +118,61 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     }
 
     function joinDrecruiterAsDev(string memory newDeveloperDID) public {
-      developers.push(msg.sender);
-      approvedRecruiters[msg.sender] = [newDeveloperDID];
-      emit NewDeveloper(msg.sender, newDeveloperDID);
-      console.log(msg.sender, "added newDeveloper", newDeveloperDID);
+        developers.push(msg.sender);
+        approvedRecruiters[msg.sender] = [newDeveloperDID];
+        emit NewDeveloper(msg.sender, newDeveloperDID);
+        console.log(msg.sender, "added newDeveloper", newDeveloperDID);
     }
 
-    function getDeveloperApprovedRecruiters(address dev) public view returns (string[] memory) {
+    function joinDrecruiterAsRecruiter(string memory newRecruiterDID)
+        public
+        payable
+    {
+        require(
+            msg.value >= recruiterBaseFee,
+            "Value must be bigger or equal to the recruiter base fee"
+        );
+        recruiters.push(msg.sender);
+        emit NewRecruiter(msg.sender, newRecruiterDID);
+        console.log(msg.sender, "added new recruiter", newRecruiterDID);
+    }
+
+    function privateProfileAccessRequest(
+        address developer,
+        string memory newRecruiterDID
+    ) public payable {
+        require(
+            msg.value >= developerBaseFee,
+            "Value must be bigger or equal to the developer base fee"
+        );
+        requestedRecruiters[developer].push(newRecruiterDID);
+        emit NewPrivateProfileAccessRequest(msg.sender, newRecruiterDID);
+        console.log(msg.sender, "new private profile request", newRecruiterDID);
+    }
+
+    function getDeveloperApprovedRecruiters(address dev)
+        public
+        view
+        returns (string[] memory)
+    {
         return approvedRecruiters[dev];
     }
+
     function getDevelopers() public view returns (address[] memory) {
         return developers;
     }
-    
-    function mint(bytes memory data)
-        external
-    {
+
+    function mint(bytes memory data) external {
         balances[tokenId.current()] = Resume(msg.sender, 0);
         tokenId.increment();
         _mint(msg.sender, tokenId.current() - 1, 1, data);
         emit NewResume(msg.sender, tokenId.current() - 1, data);
     }
 
-    function unlock(address account, uint256 id)
-        external payable
-    {
+    function unlock(address account, uint256 id) external payable {
         require(id < tokenId.current(), "NOT_MINTED_YET");
         require(msg.value >= fee, "UNPAID_FEE");
-        uint256 resumeFee = (80*msg.value)/100;
+        uint256 resumeFee = (80 * msg.value) / 100;
         Resume storage _resume = balances[id];
         _resume.fees += resumeFee;
         accumulatedFees += (msg.value - resumeFee);
@@ -138,28 +181,26 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     }
 
     function _beforeTokenTransfer(
-        address /*operator*/,
+        address, /*operator*/
         address from,
         address to,
-        uint256[] memory /*ids*/,
-        uint256[] memory /*amounts*/,
-        bytes memory /*data*/)
-        internal view
-        whenNotPaused
-        override
-    {
-        if(from != address(0)) {
+        uint256[] memory, /*ids*/
+        uint256[] memory, /*amounts*/
+        bytes memory /*data*/
+    ) internal view override whenNotPaused {
+        if (from != address(0)) {
             require(to == address(0), "TRANSFER_DISALLOWED");
         }
     }
 
-
     function _authorizeUpgrade(address newImplementation)
         internal
-        onlyRole(UPGRADER_ROLE)
         override
+        onlyRole(UPGRADER_ROLE)
     // solhint-disable-next-line no-empty-blocks
-    {}
+    {
+
+    }
 
     // The following functions are overrides required by Solidity.
 
