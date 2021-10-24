@@ -112,10 +112,19 @@ const EditPrivateProfilePage = () => {
       mySelf.id,
     ]);
 
-    const contract = await loadDRecruiterContract();
-
-    console.log({ contract });
+    const developerCid = await fetch("/api/json-storage", {
+      method: "POST",
+      body: JSON.stringify({
+        did: mySelf.id,
+      }),
+    })
+      .then(r => r.json())
+      .then(({ cid }) => {
+        console.log({ cid });
+        return cid;
+      });
     try {
+      const contract = await loadDRecruiterContract();
       const tx = await contract.joinDrecruiterAsDev(mySelf.id);
       const receipt = await tx.wait();
       console.log({ receipt });

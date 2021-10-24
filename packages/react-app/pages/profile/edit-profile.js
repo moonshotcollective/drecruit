@@ -106,6 +106,7 @@ const EditProfilePage = () => {
   const onSubmit = async values => {
     console.log(values);
     const formData = new FormData();
+    formData.append("type", "image/*");
     const [imageFile] = values.image;
     const [backgroundFile] = values.background;
     if (imageFile || backgroundFile) {
@@ -115,7 +116,7 @@ const EditProfilePage = () => {
       if (background && backgroundFile) {
         formData.append("background", backgroundFile);
       }
-      const cids = await fetch("/api/storage", { method: "POST", body: formData })
+      const cids = await fetch("/api/image-storage", { method: "POST", body: formData })
         .then(r => r.json())
         .then(response => {
           return response.cids;

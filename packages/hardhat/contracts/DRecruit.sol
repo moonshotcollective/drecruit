@@ -64,7 +64,7 @@ contract DRecruit is
     mapping(uint256 => Resume) public balances;
 
     uint256 public recruiterBaseFee = 0.1 ether;
-    uint256 public developerBaseFee = 0.1 ether;
+    uint256 public unlockDeveloperBaseFee = 0.1 ether;
     address[] public developers;
     address[] public recruiters;
     mapping(address => string[]) public approvedRecruiters;
@@ -76,6 +76,11 @@ contract DRecruit is
     event NewRecruiter(address indexed recruiter, string indexed recruiterDID);
     event NewPrivateProfileAccessRequest(
         address indexed recruiter,
+        string indexed recruiterDID,
+        address indexed developer
+    );
+    event NewPrivateProfileAccessApproval(
+        address indexed developer,
         string indexed recruiterDID
     );
     event NewResume(address indexed submitter, uint256 indexed id, bytes hash);
@@ -119,7 +124,7 @@ contract DRecruit is
 
     function joinDrecruiterAsDev(string memory newDeveloperDID) public {
         developers.push(msg.sender);
-        approvedRecruiters[msg.sender] = [newDeveloperDID];
+        // approvedRecruiters[msg.sender] = [newDeveloperDID];
         emit NewDeveloper(msg.sender, newDeveloperDID);
         console.log(msg.sender, "added newDeveloper", newDeveloperDID);
     }
@@ -139,23 +144,37 @@ contract DRecruit is
 
     function privateProfileAccessRequest(
         address developer,
-        string memory newRecruiterDID
+        string memory recruiterDID
     ) public payable {
         require(
-            msg.value >= developerBaseFee,
+            msg.value >= unlockDeveloperBaseFee,
             "Value must be bigger or equal to the developer base fee"
         );
-        requestedRecruiters[developer].push(newRecruiterDID);
-        emit NewPrivateProfileAccessRequest(msg.sender, newRecruiterDID);
-        console.log(msg.sender, "new private profile request", newRecruiterDID);
+        requestedRecruiters[developer].push(recruiterDID);
+        emit NewPrivateProfileAccessRequest(
+            msg.sender,
+            recruiterDID,
+            developer
+        );
+        console.log(msg.sender, "new private profile request", recruiterDID);
     }
 
-    function getDeveloperApprovedRecruiters(address dev)
+    function privateProfileAccessApproval(
+        address developer,
+        string memory recruiterDID
+    ) public payable {
+        require(msg.sender == developer, "Cannot approve someone for else!");
+        approvedRecruiters[developer].push(recruiterDID);
+        emit NewPrivateProfileAccessApproval(msg.sender, recruiterDID);
+        console.log(msg.sender, "new private profile approval", recruiterDID);
+    }
+
+    function getDeveloperAccessRequests(address dev)
         public
         view
         returns (string[] memory)
     {
-        return approvedRecruiters[dev];
+        return requestedRecruiters[dev];
     }
 
     function getDevelopers() public view returns (address[] memory) {
