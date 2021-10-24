@@ -40,6 +40,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155Burn
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "hardhat/console.sol";
 
 contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable, PausableUpgradeable,
     ERC1155BurnableUpgradeable, UUPSUpgradeable {
@@ -54,10 +55,13 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public fee; // payable in wei units of ether
     uint256 public accumulatedFees;
+    address[] public developers;
     mapping(uint256 => Resume) public balances;
+    mapping(address => string[]) public approvedRecruiters;
 
     Counters.Counter public tokenId;
 
+    event NewDeveloper(address indexed developer, string indexed did);
     event NewResume(address indexed submitter, uint256 indexed id, bytes hash);
     event UnlockResume(address indexed unlocker, uint256 indexed id);
 
@@ -97,6 +101,20 @@ contract DRecruit is Initializable, ERC1155Upgradeable, AccessControlUpgradeable
         _unpause();
     }
 
+    function joinDrecruiterAsDev(string memory newDeveloperDID) public {
+      developers.push(msg.sender);
+      approvedRecruiters[msg.sender] = [newDeveloperDID];
+      emit NewDeveloper(msg.sender, newDeveloperDID);
+      console.log(msg.sender, "added newDeveloper", newDeveloperDID);
+    }
+
+    function getDeveloperApprovedRecruiters(address dev) public view returns (string[] memory) {
+        return approvedRecruiters[dev];
+    }
+    function getDevelopers() public view returns (address[] memory) {
+        return developers;
+    }
+    
     function mint(bytes memory data)
         external
     {
