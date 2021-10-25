@@ -23,9 +23,14 @@ cd drecruit
 yarn install
 yarn chain
 ```
+>in a second terminal window, 🛰 deploy your contract:
 
+```bash
+cd drecruit
+yarn deploy
+```
 
-> in a second terminal window, start your 📱 frontend:
+> in a third terminal window, start your 📱 frontend:
 
 ```bash
 cd drecruit
