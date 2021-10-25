@@ -42,8 +42,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeable, PausableUpgradeable,
-    ERC1155BurnableUpgradeable, UUPSUpgradeable {
+contract DRecruitV1 is
+    Initializable,
+    ERC1155Upgradeable,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    ERC1155BurnableUpgradeable,
+    UUPSUpgradeable
+{
     struct Resume {
         address submitter;
         uint256 fees;
@@ -63,7 +69,11 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
     mapping(uint256 => EnumerableSet.AddressSet) private requesters;
 
     event NewResume(address indexed submitter, uint256 indexed id);
-    event RequestResume(address indexed requester, uint256 indexed id, uint256 stake);
+    event RequestResume(
+        address indexed requester,
+        uint256 indexed id,
+        uint256 stake
+    );
     event ApproveRequest(address indexed approved, uint256 indexed id);
     event RejectRequest(address indexed rejected, uint256 indexed id);
     event RevokeRequest(address indexed requester, uint256 indexed id);
@@ -76,7 +86,11 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         return tokenUris[id];
     }
 
-    function getRequesters(uint256 id) external view returns (address[] memory) {
+    function getRequesters(uint256 id)
+        external
+        view
+        returns (address[] memory)
+    {
         return requesters[id].values();
     }
 
@@ -107,9 +121,11 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         _unpause();
     }
 
-    function mint(string memory _tokenUri, bytes memory data)
-        external
-    {
+    function getLastTokenId() public view returns (uint256) {
+        return tokenId.current();
+    }
+
+    function mint(string memory _tokenUri, bytes memory data) external {
         balances[tokenId.current()] = Resume(msg.sender, 0);
         tokenUris[tokenId.current()] = _tokenUri;
         tokenId.increment();
@@ -118,9 +134,7 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         emit URI(_tokenUri, tokenId.current() - 1);
     }
 
-    function request(uint256 id)
-        external payable
-    {
+    function request(uint256 id) external payable {
         require(id < tokenId.current(), "NOT_MINTED_YET");
         require(msg.value >= fee, "UNPAID_FEE");
         require(requests[id][msg.sender] == 0, "ALREADY_REQUESTED");
@@ -129,13 +143,11 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         emit RequestResume(msg.sender, id, msg.value);
     }
 
-    function approveRequest(uint256 id, address account)
-        external
-    {
+    function approveRequest(uint256 id, address account) external {
         Resume memory _resume = balances[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         require(requests[id][account] != 0, "NOT_REQUESTED");
-        uint256 resumeFee = (80*requests[id][account])/100;
+        uint256 resumeFee = (80 * requests[id][account]) / 100;
         // solhint-disable-next-line avoid-low-level-calls
         address(msg.sender).call{value: resumeFee}("");
         accumulatedFees += (requests[id][account] - resumeFee);
@@ -145,16 +157,14 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         emit ApproveRequest(account, id);
     }
 
-    function approveRequests(uint256 id, address[] calldata accounts)
-        external
-    {
+    function approveRequests(uint256 id, address[] calldata accounts) external {
         Resume memory _resume = balances[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
-        for(uint256 i = 0; i < accounts.length; i++) {
-            if(requests[id][accounts[i]] == 0) {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            if (requests[id][accounts[i]] == 0) {
                 continue;
             }
-            uint256 resumeFee = (80*requests[id][accounts[i]])/100;
+            uint256 resumeFee = (80 * requests[id][accounts[i]]) / 100;
             // solhint-disable-next-line avoid-low-level-calls
             address(msg.sender).call{value: resumeFee}("");
             accumulatedFees += (requests[id][accounts[i]] - resumeFee);
@@ -165,9 +175,7 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         }
     }
 
-    function rejectRequest(uint256 id, address account)
-        external
-    {
+    function rejectRequest(uint256 id, address account) external {
         Resume memory _resume = balances[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         require(requests[id][account] != 0, "NOT_REQUESTED");
@@ -179,13 +187,11 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         emit RejectRequest(account, id);
     }
 
-    function rejectRequests(uint256 id, address[] calldata accounts)
-        external
-    {
+    function rejectRequests(uint256 id, address[] calldata accounts) external {
         Resume memory _resume = balances[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
-        for(uint256 i = 0; i < accounts.length; i++) {
-            if(requests[id][accounts[i]] == 0) {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            if (requests[id][accounts[i]] == 0) {
                 continue;
             }
             // solhint-disable-next-line avoid-low-level-calls
@@ -196,9 +202,7 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
         }
     }
 
-    function revokeRequest(uint256 id)
-        external
-    {
+    function revokeRequest(uint256 id) external {
         require(requests[id][msg.sender] != 0, "NOT_REQUESTED");
         // solhint-disable-next-line avoid-low-level-calls
         address(msg.sender).call{value: requests[id][msg.sender]}("");
@@ -209,28 +213,26 @@ contract DRecruitV1 is Initializable, ERC1155Upgradeable, AccessControlUpgradeab
     }
 
     function _beforeTokenTransfer(
-        address /*operator*/,
+        address, /*operator*/
         address from,
         address to,
-        uint256[] memory /*ids*/,
-        uint256[] memory /*amounts*/,
-        bytes memory /*data*/)
-        internal view
-        whenNotPaused
-        override
-    {
-        if(from != address(0)) {
+        uint256[] memory, /*ids*/
+        uint256[] memory, /*amounts*/
+        bytes memory /*data*/
+    ) internal view override whenNotPaused {
+        if (from != address(0)) {
             require(to == address(0), "TRANSFER_DISALLOWED");
         }
     }
 
-
     function _authorizeUpgrade(address newImplementation)
         internal
-        onlyRole(UPGRADER_ROLE)
         override
+        onlyRole(UPGRADER_ROLE)
     // solhint-disable-next-line no-empty-blocks
-    {}
+    {
+
+    }
 
     // The following functions are overrides required by Solidity.
 

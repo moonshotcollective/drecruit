@@ -1,6 +1,6 @@
 import { Button, FormControl, FormErrorMessage, FormLabel, Input, Stack, Image, Textarea } from "@chakra-ui/react";
 import { Box } from "@chakra-ui/layout";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 // import Image from "next/image";
@@ -9,9 +9,10 @@ import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from ".
 import { useHistory } from "react-router";
 import PhoneNumberInput from "../../components/inputs/PhoneNumberInput";
 import { COUNTRIES } from "../../helpers/countries";
+import { Web3Context } from "../../helpers/Web3Context";
+import { loadDRecruitV1Contract } from "../../helpers";
 
-const EditProfilePage = () => {
-  // TODO: store images on Web3.storage
+const EditPrivateProfilePage = () => {
   const [mySelf, setMySelf] = useState();
   const [did, setDid] = useState();
   const [address, setAddress] = useState();
@@ -110,7 +111,36 @@ const EditProfilePage = () => {
       // logged-in user,
       mySelf.id,
     ]);
-    return mySelf.client.dataStore.set("privateProfile", { encrypted: JSON.stringify(encryptedData) });
+    // TODO: close connection on account change
+    // await mySelf.client.ceramic.close();
+
+    const developerTokenURI = await fetch("/api/json-storage", {
+      method: "POST",
+      body: JSON.stringify({
+        did: mySelf.id,
+      }),
+    })
+      .then(r => r.json())
+      .then(({ cid, fileName }) => {
+        console.log({ cid, fileName });
+        return `ipfs://${cid}/${fileName}`;
+      });
+    console.log({ developerTokenURI });
+    try {
+      const contract = await loadDRecruitV1Contract();
+      const tx = await contract.mint(developerTokenURI, 0);
+      const receipt = await tx.wait();
+      console.log({ receipt });
+      const tokenId = receipt.events[0].args.id.toString();
+      return mySelf.client.dataStore.set("privateProfile", {
+        tokenURI: developerTokenURI,
+        tokenId: parseInt(tokenId, 10),
+        encrypted: JSON.stringify(encryptedData),
+      });
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
   };
 
   return (
@@ -220,4 +250,4 @@ const EditProfilePage = () => {
   );
 };
 
-export default EditProfilePage;
+export default EditPrivateProfilePage;
