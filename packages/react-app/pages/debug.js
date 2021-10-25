@@ -11,7 +11,7 @@ function Debug() {
     <div className="flex flex-1 flex-col h-screen w-full items-center">
       <div className="text-center">
         <Contract
-          name="DRecruit"
+          name="DRecruitV1"
           signer={context.userSigner}
           provider={context.localProvider}
           address={context.address}

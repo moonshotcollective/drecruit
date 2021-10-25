@@ -41,7 +41,7 @@ function MediaCard({
     let isValidRecipient = false;
     (async () => {
       try {
-        const decrypted = await self.client.ceramic.did.decryptDagJWE(privateProfile);
+        const decrypted = await self.client.ceramic.did.decryptDagJWE(JSON.parse(privateProfile.encrypted));
         setCanView(true);
         setDecryptedData(decrypted);
       } catch (error) {
@@ -51,7 +51,7 @@ function MediaCard({
   }, [privateProfile]);
 
   const handleSecondaryAction = useCallback(async () => {
-    const decryptedData = await secondaryActionOnClick(privateProfile);
+    const decryptedData = await secondaryActionOnClick(JSON.parse(privateProfile.encrypted));
     console.log({ decryptedData });
     setDecryptedData(decryptedData);
     return decryptedData;
@@ -132,7 +132,7 @@ function MediaCard({
           </Box>
         ) : (
           <Text p="5" backgroundColor="gray.100" color="gray.900">
-            {privateProfile.ciphertext}
+            {JSON.parse(privateProfile.encrypted).ciphertext}
           </Text>
         )}
         <Button
@@ -140,7 +140,7 @@ function MediaCard({
           w={"full"}
           mt={8}
           // TODO: get dev main address
-          onClick={() => primaryActionOnClick("0xcd3B766CCDd6AE721141F452C550Ca635964ce71", privateProfile)}
+          onClick={() => primaryActionOnClick(privateProfile)}
         >
           {canView ? "✔️ Informations already unlocked" : primaryAction}
         </Button>

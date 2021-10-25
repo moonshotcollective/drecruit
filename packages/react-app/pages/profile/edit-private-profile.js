@@ -10,7 +10,7 @@ import { useHistory } from "react-router";
 import PhoneNumberInput from "../../components/inputs/PhoneNumberInput";
 import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
-import { loadDRecruiterContract } from "../../helpers";
+import { loadDRecruitV1Contract } from "../../helpers";
 
 const EditPrivateProfilePage = () => {
   const [mySelf, setMySelf] = useState();
@@ -111,24 +111,32 @@ const EditPrivateProfilePage = () => {
       // logged-in user,
       mySelf.id,
     ]);
+    // TODO: close connection on account change
+    // await mySelf.client.ceramic.close();
 
-    const developerCid = await fetch("/api/json-storage", {
+    const developerTokenURI = await fetch("/api/json-storage", {
       method: "POST",
       body: JSON.stringify({
         did: mySelf.id,
       }),
     })
       .then(r => r.json())
-      .then(({ cid }) => {
-        console.log({ cid });
-        return cid;
+      .then(({ cid, fileName }) => {
+        console.log({ cid, fileName });
+        return `ipfs://${cid}/${fileName}`;
       });
+    console.log({ developerTokenURI });
     try {
-      const contract = await loadDRecruiterContract();
-      const tx = await contract.joinDrecruiterAsDev(mySelf.id);
+      const contract = await loadDRecruitV1Contract();
+      const tx = await contract.mint(developerTokenURI, 0);
       const receipt = await tx.wait();
       console.log({ receipt });
-      return mySelf.client.dataStore.set("privateProfile", { encrypted: JSON.stringify(encryptedData) });
+      const tokenId = receipt.events[0].args.id.toString();
+      return mySelf.client.dataStore.set("privateProfile", {
+        tokenURI: developerTokenURI,
+        tokenId: parseInt(tokenId, 10),
+        encrypted: JSON.stringify(encryptedData),
+      });
     } catch (error) {
       console.log(error);
       return error;

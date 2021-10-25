@@ -27,14 +27,14 @@ import {
   PageHeader,
 } from "antd";
 import { randomBytes } from "@stablelib/random";
+import { ethers } from "ethers";
 
 import modelAliases from "../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
-import { getNetwork, loadDRecruiterContract } from "../helpers";
+import { getDidFromTokenURI, getNetwork, loadDRecruitV1Contract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
-import { ethers } from "ethers";
 
 function Home() {
   const context = useContext(Web3Context);
@@ -52,7 +52,7 @@ function Home() {
 
   const init = async () => {
     const { network } = await getNetwork();
-    const contract = await loadDRecruiterContract();
+    const contract = await loadDRecruitV1Contract();
     setDRecruitContract(contract);
     const addresses = await window.ethereum.enable();
     console.log(addresses);
@@ -64,12 +64,13 @@ function Home() {
     });
     console.log({ self });
     setMySelf(self);
-    const dRecruitDevelopers = await contract.getDevelopers();
+    const lastTokenId = await contract.getLastTokenId();
+    const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
+    const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
+    console.log(tokenURIs);
+    const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
     const core = ceramicCoreFactory();
-    const developersDID = await Promise.all(
-      dRecruitDevelopers.map(async address => core.getAccountDID(`${address}@eip155:${network.chainId}`)),
-    );
-    const developerProfiles = await Promise.all(
+    const devProfiles = await Promise.all(
       developersDID.map(async did => ({
         did,
         basicProfile: await core.get("basicProfile", did),
@@ -78,21 +79,17 @@ function Home() {
         privateProfile: await core.get("privateProfile", did),
       })),
     );
-    setDeveloperProfiles(developerProfiles);
-    console.log(developerProfiles);
+    setDeveloperProfiles(devProfiles);
   };
 
-  const handleRequestPrivateProfileUnlock = async (devAddress, privateProfile) => {
-    const tx = await dRecruitContract.privateProfileAccessRequest(devAddress, mySelf.id, {
+  const handleRequestPrivateProfileUnlock = async privateProfile => {
+    console.log(privateProfile);
+    const tx = await dRecruitContract.request(privateProfile.tokenId, {
       value: ethers.utils.parseEther("0.1"),
     });
     const receipt = await tx.wait();
     console.log({ receipt });
-  };
-  const handlePrivateProfileUnlock = async privateProfile => {
-    const decrypted = await await mySelf.client.ceramic.did?.decryptDagJWE(privateProfile);
-    console.log({ decrypted });
-    return decrypted;
+    return receipt;
   };
 
   return (
@@ -115,9 +112,8 @@ function Home() {
               secondaryAction="View contact informations"
               hasWebAccount={!!webAccounts}
               self={mySelf}
-              privateProfile={JSON.parse(privateProfile.encrypted)}
+              privateProfile={privateProfile}
               primaryActionOnClick={handleRequestPrivateProfileUnlock}
-              secondaryActionOnClick={handlePrivateProfileUnlock}
             />
           );
         })}
