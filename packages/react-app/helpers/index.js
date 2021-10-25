@@ -20,7 +20,7 @@ export const getNetwork = async () => {
   return { network, signer, provider };
 };
 
-export const loadDRecruiterContract = async () => {
+export const loadDRecruitV1Contract = async () => {
   const { network, signer } = await getNetwork();
   const contract = new ethers.Contract(
     DRecruiter[network.chainId][network.name].contracts.DRecruitV1.address,

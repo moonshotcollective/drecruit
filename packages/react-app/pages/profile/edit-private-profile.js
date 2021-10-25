@@ -10,7 +10,7 @@ import { useHistory } from "react-router";
 import PhoneNumberInput from "../../components/inputs/PhoneNumberInput";
 import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
-import { loadDRecruiterContract } from "../../helpers";
+import { loadDRecruitV1Contract } from "../../helpers";
 
 const EditPrivateProfilePage = () => {
   const [mySelf, setMySelf] = useState();
@@ -127,7 +127,7 @@ const EditPrivateProfilePage = () => {
       });
     console.log({ developerTokenURI });
     try {
-      const contract = await loadDRecruiterContract();
+      const contract = await loadDRecruitV1Contract();
       const tx = await contract.mint(developerTokenURI, 0);
       const receipt = await tx.wait();
       console.log({ receipt });

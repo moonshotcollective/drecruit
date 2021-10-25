@@ -1,5 +1,5 @@
-import { Button } from "@chakra-ui/button";
-import { Box, Heading } from "@chakra-ui/layout";
+import { Button } from "@chakra-ui/react";
+import { Box, Flex, Heading } from "@chakra-ui/layout";
 import { ethers } from "ethers";
 import { useRouter } from "next/dist/client/router";
 import React from "react";
@@ -17,14 +17,11 @@ export const HomeActions = ({ contract, mySelf }) => {
     return router.push("/profile/edit-profile");
   };
   return (
-    <Box>
-      <Heading>Join dRecruit as:</Heading>
-      <Button m="5" onClick={handleJoinAsRecruiter}>
-        RECRUITER
+    <Flex flexDirection="column" justifyContent="center" alignItems="center" w="full">
+      <Heading>Welcome to dRecruit!</Heading>
+      <Button m="5" size="lg" colorScheme="purple" onClick={handleJoinAsDeveloper}>
+        JOIN AS A BUILDER
       </Button>
-      <Button m="5" onClick={handleJoinAsDeveloper}>
-        DEVELOPER
-      </Button>
-    </Box>
+    </Flex>
   );
 };
