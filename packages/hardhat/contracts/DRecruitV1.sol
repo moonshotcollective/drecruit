@@ -78,9 +78,8 @@ contract DRecruitV1 is
     event RejectRequest(address indexed rejected, uint256 indexed id);
     event RevokeRequest(address indexed requester, uint256 indexed id);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     // solhint-disable-next-line no-empty-blocks
-    constructor() initializer {}
+    constructor() {}
 
     function uri(uint256 id) public view override returns (string memory) {
         return tokenUris[id];
