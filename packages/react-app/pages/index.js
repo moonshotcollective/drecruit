@@ -30,7 +30,7 @@ import { randomBytes } from "@stablelib/random";
 
 import modelAliases from "../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
-import { getNetwork, loadDRecruiterContract } from "../helpers";
+import { getDidFromTokenURI, getNetwork, loadDRecruiterContract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
@@ -64,12 +64,13 @@ function Home() {
     });
     console.log({ self });
     setMySelf(self);
-    const dRecruitDevelopers = await contract.getDevelopers();
+    const lastTokenId = await contract.getLastTokenId();
+    const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
+    const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
+    console.log(tokenURIs);
+    const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
     const core = ceramicCoreFactory();
-    const developersDID = await Promise.all(
-      dRecruitDevelopers.map(async address => core.getAccountDID(`${address}@eip155:${network.chainId}`)),
-    );
-    const developerProfiles = await Promise.all(
+    const devProfiles = await Promise.all(
       developersDID.map(async did => ({
         did,
         basicProfile: await core.get("basicProfile", did),
@@ -78,8 +79,7 @@ function Home() {
         privateProfile: await core.get("privateProfile", did),
       })),
     );
-    setDeveloperProfiles(developerProfiles);
-    console.log(developerProfiles);
+    setDeveloperProfiles(devProfiles);
   };
 
   const handleRequestPrivateProfileUnlock = async (devAddress, privateProfile) => {

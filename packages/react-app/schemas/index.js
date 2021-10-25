@@ -3,6 +3,14 @@ const PrivateProfileSchema = {
   title: "PrivateProfile",
   type: "object",
   properties: {
+    tokenId: {
+      type: "integer",
+      title: "tokenId",
+    },
+    tokenURI: {
+      type: "string",
+      title: "tokenURI",
+    },
     encrypted: {
       type: "string",
       title: "encrypted",

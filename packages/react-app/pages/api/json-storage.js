@@ -13,11 +13,15 @@ function getWeb3Token() {
 const web3Storage = new Web3Storage({ token: getWeb3Token() });
 
 async function handler(req, res) {
-  const body = JSON.parse(req.body);
-  const blob = new Blob([body.did], { type: "application/json" });
-  const file = new File([blob], `${body.did}.json`);
-  const cid = await web3Storage.put([file], { wrapWithDirectory: false });
-  return res.status(200).json({ cid });
+  const { did } = JSON.parse(req.body);
+  if (did) {
+    const fileName = `${did}.json`;
+    const blob = new Blob([JSON.stringify({ did })], { type: "application/json" });
+    const file = new File([blob], fileName);
+    const cid = await web3Storage.put([file]);
+    return res.status(200).json({ cid, fileName });
+  }
+  return res.status(400);
 }
 
 // first we need to disable the default body parser

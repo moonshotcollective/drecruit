@@ -153,7 +153,7 @@ const tenderlyVerify = async ({ contractName, contractAddress }) => {
 const main = async () => {
   console.log("\n\n 📡 Deploying...\n");
 
-  const dRecruitContract = await deploy("DRecruit"); // <-- add in constructor args like line 19 vvvv
+  const dRecruitContract = await deploy("DRecruitV1"); // <-- add in constructor args like line 19 vvvv
   // use for local token bridging
   // const mockToken = await deploy("MockERC20") // <-- add in constructor args like line 19 vvvv
 

@@ -111,24 +111,32 @@ const EditPrivateProfilePage = () => {
       // logged-in user,
       mySelf.id,
     ]);
+    // TODO: close connection on account change
+    // await mySelf.client.ceramic.close();
 
-    const developerCid = await fetch("/api/json-storage", {
+    const developerTokenURI = await fetch("/api/json-storage", {
       method: "POST",
       body: JSON.stringify({
         did: mySelf.id,
       }),
     })
       .then(r => r.json())
-      .then(({ cid }) => {
-        console.log({ cid });
-        return cid;
+      .then(({ cid, fileName }) => {
+        console.log({ cid, fileName });
+        return `ipfs://${cid}/${fileName}`;
       });
+    console.log({ developerTokenURI });
     try {
       const contract = await loadDRecruiterContract();
-      const tx = await contract.joinDrecruiterAsDev(mySelf.id);
+      const tx = await contract.mint(developerTokenURI, 0);
       const receipt = await tx.wait();
       console.log({ receipt });
-      return mySelf.client.dataStore.set("privateProfile", { encrypted: JSON.stringify(encryptedData) });
+      const tokenId = receipt.events[0].args.id.toString();
+      return mySelf.client.dataStore.set("privateProfile", {
+        tokenURI: developerTokenURI,
+        tokenId: parseInt(tokenId, 10),
+        encrypted: JSON.stringify(encryptedData),
+      });
     } catch (error) {
       console.log(error);
       return error;

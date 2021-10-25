@@ -23,9 +23,20 @@ export const getNetwork = async () => {
 export const loadDRecruiterContract = async () => {
   const { network, signer } = await getNetwork();
   const contract = new ethers.Contract(
-    DRecruiter[network.chainId][network.name].contracts.DRecruit.address,
-    DRecruiter[network.chainId][network.name].contracts.DRecruit.abi,
+    DRecruiter[network.chainId][network.name].contracts.DRecruitV1.address,
+    DRecruiter[network.chainId][network.name].contracts.DRecruitV1.abi,
     signer,
   );
   return contract;
+};
+
+export const getDidFromTokenURI = tokenURI => {
+  const [ipfsWithColon, _, cid, didFilename] = tokenURI.split("/");
+  const [did] = didFilename.split(".json");
+  return {
+    did,
+    cid,
+    tokenURI,
+    filename: didFilename,
+  };
 };
