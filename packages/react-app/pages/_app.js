@@ -52,7 +52,6 @@ function MyApp({ Component, pageProps }) {
                   <a>Requests</a>
                 </Link>
               </Menu.Item>
-
               <Menu.Item key="debug">
                 <Link href="/debug">
                   <a>Debug Contracts</a>
