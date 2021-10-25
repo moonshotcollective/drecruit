@@ -183,7 +183,6 @@ contract DRecruitV1 is
         address(account).call{value: requests[id][account]}("");
         requests[id][account] = 0; // save some gas
         requesters[id].remove(account);
-        _mint(account, id, 1, "");
         emit RejectRequest(account, id);
     }
 
@@ -208,8 +207,7 @@ contract DRecruitV1 is
         address(msg.sender).call{value: requests[id][msg.sender]}("");
         requests[id][msg.sender] = 0; // save some gas
         requesters[id].remove(msg.sender);
-        _mint(msg.sender, id, 1, "");
-        emit RejectRequest(msg.sender, id);
+        emit RevokeRequest(msg.sender, id);
     }
 
     function _beforeTokenTransfer(
