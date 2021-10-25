@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 // import Image from "next/image";
 import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
+import { getNetwork } from "../../helpers";
 
 const EditProfilePage = () => {
   const router = useRouter();
@@ -45,10 +46,11 @@ const EditProfilePage = () => {
     // fetch from Ceramic
     (async () => {
       if (address) {
+        const { network } = await getNetwork();
         const core = ceramicCoreFactory();
         let userDID;
         try {
-          userDID = await core.getAccountDID(address + "@eip155:1");
+          userDID = await core.getAccountDID(`${address}@eip155:${network.chainId}`);
         } catch (error) {
           console.log(error);
           const profile = await init();
@@ -59,6 +61,7 @@ const EditProfilePage = () => {
           setDid(userDID);
           const result = await core.get("basicProfile", userDID);
           console.log({ result });
+          if (!result) return;
           Object.entries(result).forEach(([key, value]) => {
             console.log({ key, value });
             if (["image", "background"].includes(key)) {

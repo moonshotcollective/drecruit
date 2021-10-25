@@ -10,7 +10,7 @@ import { useHistory } from "react-router";
 import PhoneNumberInput from "../../components/inputs/PhoneNumberInput";
 import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
-import { loadDRecruitV1Contract } from "../../helpers";
+import { getNetwork, loadDRecruitV1Contract } from "../../helpers";
 
 const EditPrivateProfilePage = () => {
   const [mySelf, setMySelf] = useState();
@@ -51,9 +51,10 @@ const EditPrivateProfilePage = () => {
     (async () => {
       if (address) {
         const core = ceramicCoreFactory();
+        const { network } = await getNetwork();
         let userDID;
         try {
-          userDID = await core.getAccountDID(address + "@eip155:1");
+          userDID = await core.getAccountDID(`${address}@eip155:${network.chainId}`);
         } catch (error) {
           console.log(error);
           const profile = await init();

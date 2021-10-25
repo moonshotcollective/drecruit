@@ -22,8 +22,10 @@ Prerequisites: [Node](https://nodejs.org/en/download/) plus [Yarn](https://class
 cd drecruit
 yarn install
 yarn chain
+yarn ceramic
 ```
->in a second terminal window, 🛰 deploy your contract:
+
+> in a second terminal window, 🛰 deploy your contract:
 
 ```bash
 cd drecruit
@@ -34,7 +36,7 @@ yarn deploy
 
 ```bash
 cd drecruit
-yarn start
+yarn dev
 ```
 
 🔏 Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
@@ -48,4 +50,3 @@ yarn start
 # 📚 Documentation
 
 Documentation, tutorials, challenges, and many more resources, visit: [docs.scaffoldeth.io](https://docs.scaffoldeth.io)
-
