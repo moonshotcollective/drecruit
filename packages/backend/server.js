@@ -9,6 +9,7 @@ const { convert } = require('blockcodec-to-ipld-format')
 const { DID } = require('dids')
 const { Ed25519Provider } = require('key-did-provider-ed25519')
 const KeyDidResolver = require('key-did-resolver')
+const { Ceramic } = require('@ceramicnetwork/core')
 const { Auth, Info, Resume } = require('./models')
 
 const dagJoseFormat = convert(dagJose)
@@ -16,6 +17,7 @@ let ipfs
 
 const provider = new Ed25519Provider(Buffer.from((process.env.CERAMIC_SEED), 'hex'))
 const did = new DID({ provider, resolver: KeyDidResolver.getResolver() })
+let ceramic
 
 fastify.register(require('fastify-secure-session'), {
   cookieName: 'drecruit-session',
@@ -68,6 +70,28 @@ fastify.get('/verify/:address', async (request, reply) => {
   }
 })
 
+fastify.post('/resume', async (request, reply) => {
+  try {
+    if (!/^0x[A-Za-z0-9]{40}$/.test(request.params.address)) {
+      return { statusCode: 400, message: 'Invalid address' }
+    }
+    const result = await Auth.findOne({ address: request.params.address }).lean()
+    if (!result) {
+      return { statusCode: 403, message: 'No nonce exists for address' }
+    }
+    const decodedAddress = await ethers.utils.verifyMessage(result.message, request.body.signature)
+    if (decodedAddress === request.params.address) {
+      request.session.set('address', decodedAddress)
+      return { statusCode: 200 }
+    } else {
+      return { statusCode: 401 }
+    }
+  } catch (err) {
+    fastify.log.error(err)
+    return { statusCode: 500 }
+  }
+})
+
 fastify.get('/unlock/:tokenId', async (request, reply) => {
   try {
     const userAddress = request.session.get('address')
@@ -95,7 +119,10 @@ const start = async () => {
   try {
     await mongoose.connect(process.env.DB_URL)
     ipfs = await Ipfs.create({ ipld: { formats: [dagJoseFormat] } })
-    await did.authenticate()
+    const ceramic = await Ceramic.create(ipfs)
+    ceramic.did = did
+    ceramic.did.setProvider(provider)
+    await ceramic.did.authenticate()
     fastify.log.info('DB connected')
     await fastify.listen(3000)
   } catch (err) {
