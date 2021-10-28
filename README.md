@@ -10,6 +10,12 @@ Current recruiting sites like LinkedIn and Indeed often use candidates resumé d
 
 Prerequisites: [Node](https://nodejs.org/en/download/) plus [Yarn](https://classic.yarnpkg.com/en/docs/install/) and [Git](https://git-scm.com/downloads)
 
+```bash
+  cd packages/react-app
+```
+
+Copy paste the .sample.env into a new file called .env.local and add your [web3.storage](https://web3.storage) and set the value of WEB3STORAGE_TOKEN with your web3.storage API key
+
 > clone/fork 🏗 drecruit:
 
 ```bash
