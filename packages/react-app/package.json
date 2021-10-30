@@ -118,7 +118,7 @@
     "dev": "next dev",
     "next:build": "next build",
     "export": "next export -o build/",
-    "build": "next build && yarn export",
+    "build": "yarn && next build && yarn export",
     "ceramic:publish": "node ./ceramic.config.js",
     "prestart": "node ./scripts/create_contracts.js",
     "start": "next start",
