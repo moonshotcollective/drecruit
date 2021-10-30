@@ -121,7 +121,7 @@
     "build": "next build && yarn export",
     "ceramic:publish": "node ./ceramic.config.js",
     "prestart": "node ./scripts/create_contracts.js",
-    "start": "next start",
+    "start": "next start -p $PORT",
     "test": "react-scripts test",
     "lint": "eslint --config ./.eslintrc.js --ignore-path ./.eslintignore ./src/**/*",
     "ipfs": "node ./scripts/ipfs.js",
@@ -131,5 +131,8 @@
     "theme": "npx gulp less",
     "watch": "node ./scripts/watch.js",
     "prettier": "npx prettier --write . '!(node_module|build)/**/*'"
-  }
+  },
+  "cacheDirectories": [
+    ".next/cache"
+  ]
 }
