@@ -30,7 +30,7 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <Web3Provider network={process.env.REACT_APP_NETWORK_NAME}>
+    <Web3Provider network="mumbai">
       <ChakraProvider>
         <ThemeSwitcherProvider themeMap={themes} defaultTheme={prevTheme.current}>
           <>

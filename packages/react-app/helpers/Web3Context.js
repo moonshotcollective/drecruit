@@ -21,6 +21,7 @@ export const Web3Context = React.createContext({});
 
 // provider Component that wraps the entire app and provides context variables
 export function Web3Provider({ children, network = "localhost", DEBUG = false, NETWORKCHECK = true, ...props }) {
+  console.log({ network });
   // for Nextjs Builds, return null until "window" is available
   if (!global.window) {
     return null;
@@ -412,8 +413,10 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     writeContracts,
     mainnetProvider,
     yourMainnetBalance,
+    injectedProvider,
     address,
     blockExplorer,
+    targetNetwork,
     networkDisplay,
     faucetHint,
     web3Modal,

@@ -31,7 +31,7 @@ import { ethers } from "ethers";
 
 import modelAliases from "../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
-import { getDidFromTokenURI, getNetwork, loadDRecruitV1Contract } from "../helpers";
+import { getDidFromTokenURI, loadDRecruitV1Contract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
@@ -46,41 +46,43 @@ function Home() {
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
+  const init = async () => {
+    if (context.injectedProvider && context.injectedProvider.getSigner()) {
+      const signer = context.injectedProvider.getSigner();
+      const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
+      setDRecruitContract(contract);
+      const addresses = await window.ethereum.enable();
+      console.log(addresses);
+      const self = await SelfID.authenticate({
+        authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
+        ceramic: CERAMIC_TESTNET,
+        connectNetwork: CERAMIC_TESTNET,
+        model: modelAliases,
+      });
+      console.log({ self });
+      setMySelf(self);
+      const lastTokenId = await contract.getLastTokenId();
+      const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
+      const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
+      console.log(tokenURIs);
+      const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
+      const core = ceramicCoreFactory();
+      const devProfiles = await Promise.all(
+        developersDID.map(async did => ({
+          did,
+          basicProfile: await core.get("basicProfile", did),
+          cryptoAccounts: await core.get("cryptoAccounts", did),
+          webAccounts: await core.get("alsoKnownAs", did),
+          privateProfile: await core.get("privateProfile", did),
+        })),
+      );
+      setDeveloperProfiles(devProfiles);
+    }
+  };
+
   useEffect(() => {
     init();
   }, []);
-
-  const init = async () => {
-    const { network } = await getNetwork();
-    const contract = await loadDRecruitV1Contract();
-    setDRecruitContract(contract);
-    const addresses = await window.ethereum.enable();
-    console.log(addresses);
-    const self = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-      ceramic: CERAMIC_TESTNET,
-      connectNetwork: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
-    console.log({ self });
-    setMySelf(self);
-    const lastTokenId = await contract.getLastTokenId();
-    const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
-    const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
-    console.log(tokenURIs);
-    const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
-    const core = ceramicCoreFactory();
-    const devProfiles = await Promise.all(
-      developersDID.map(async did => ({
-        did,
-        basicProfile: await core.get("basicProfile", did),
-        cryptoAccounts: await core.get("cryptoAccounts", did),
-        webAccounts: await core.get("alsoKnownAs", did),
-        privateProfile: await core.get("privateProfile", did),
-      })),
-    );
-    setDeveloperProfiles(devProfiles);
-  };
 
   const handleRequestPrivateProfileUnlock = async privateProfile => {
     console.log(privateProfile);
