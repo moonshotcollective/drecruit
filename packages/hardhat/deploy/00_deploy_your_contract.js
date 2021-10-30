@@ -48,4 +48,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
   */
 };
-module.exports.tags = ["DRecruit"];
+module.exports.tags = ["DRecruitV1"];
