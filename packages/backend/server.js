@@ -12,6 +12,7 @@ const { Ed25519Provider } = require("key-did-provider-ed25519");
 const KeyDidResolver = require("key-did-resolver");
 const { Ceramic } = require("@ceramicnetwork/core");
 const { Auth, Info, Resume } = require("./models");
+const DRecruitAbi = require("./config/DRecruitAbi.json");
 
 const dagJoseFormat = convert(dagJose);
 let ipfs;
@@ -23,6 +24,9 @@ const did = new DID({ provider, resolver: KeyDidResolver.getResolver() });
 const ceramicCore = new Core({
   ceramic: "testnet-clay",
 });
+
+const rpcProvider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+const dRecruitContract = new ethers.Contract(process.env.CONTRACT_ADDRESS, DRecruitAbi, rpcProvider);
 
 fastify.register(require("fastify-secure-session"), {
   cookieName: "drecruit-session",
@@ -122,11 +126,7 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
       request.params.tokenId
     );
     if (userBalance >= 1) {
-      // this will ideally be changed to fetching the CID from the stream, and the stream ID is stored on-chain
-
-      const result = await Info.findOne({
-        tokenId: request.params.tokenId,
-      }).lean();
+      const userBalance = dRecruitContract.uri(request.params.tokenId);
       const jwe = await ipfs.dag.get(result.contentId);
       const cleartext = await did.decryptDagJWE(jwe);
       return { message: cleartext };

@@ -13,6 +13,7 @@
   "dependencies": {
     "@ceramicnetwork/core": "^1.8.0",
     "@ceramicnetwork/key-did-resolver": "^0.2.2",
+    "@self.id/core": "^0.1.0",
     "blockcodec-to-ipld-format": "^2.0.0",
     "dag-jose": "^1.0.0",
     "dids": "^2.4.0",
