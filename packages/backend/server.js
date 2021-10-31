@@ -26,6 +26,9 @@ const core = new Core({
 const { makeCeramicClient } = require("./helpers");
 
 let ceramic;
+fastify.register(require("fastify-cors"), {
+  origin: ["http://localhost:3000"],
+});
 fastify.register(require("fastify-secure-session"), {
   cookieName: "drecruit-session",
   key: process.env.COOKIE_KEY,
@@ -59,11 +62,12 @@ fastify.get("/nonce/:address", async (request, reply) => {
   }
 });
 
-fastify.get("/verify/:address", async (request, reply) => {
+fastify.post("/verify/:address", async (request, reply) => {
   try {
     if (!/^0x[A-Za-z0-9]{40}$/.test(request.params.address)) {
       return { statusCode: 400, message: "Invalid address" };
     }
+    console.log({ addr: request.params.address });
     const result = await Auth.findOne({
       address: request.params.address,
     }).lean();
