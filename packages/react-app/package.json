@@ -77,6 +77,7 @@
     "react-scripts": "4.0.0",
     "react-world-flags": "^1.4.0",
     "states-cities-db": "^1.4.1",
+    "tailwindcss": "^2.2.19",
     "uint8arrays": "^3.0.0",
     "walletlink": "^2.1.5",
     "web3.storage": "^3.3.2",
@@ -108,8 +109,7 @@
     "postcss": "^8.3.8",
     "prettier": "^2.0.5",
     "s3-folder-upload": "^2.3.1",
-    "surge": "^0.21.5",
-    "tailwindcss": "^2.2.16"
+    "surge": "^0.21.5"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -118,10 +118,10 @@
     "dev": "next dev",
     "next:build": "next build",
     "export": "next export -o build/",
-    "build": "next build && yarn export",
+    "build": "next build",
     "ceramic:publish": "node ./ceramic.config.js",
     "prestart": "node ./scripts/create_contracts.js",
-    "start": "next start",
+    "start": "next start -p $PORT",
     "test": "react-scripts test",
     "lint": "eslint --config ./.eslintrc.js --ignore-path ./.eslintignore ./src/**/*",
     "ipfs": "node ./scripts/ipfs.js",

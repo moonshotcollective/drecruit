@@ -1,15 +1,16 @@
 import { Button, FormControl, FormErrorMessage, FormLabel, Input, Stack, Image, Textarea } from "@chakra-ui/react";
 import { Box } from "@chakra-ui/layout";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { useRouter } from "next/router";
 // import Image from "next/image";
 import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
-import { getNetwork } from "../../helpers";
+import { Web3Context } from "../../helpers/Web3Context";
 
 const EditProfilePage = () => {
+  const context = useContext(Web3Context);
   const router = useRouter();
   const [mySelf, setMySelf] = useState();
   const [did, setDid] = useState();
@@ -46,11 +47,10 @@ const EditProfilePage = () => {
     // fetch from Ceramic
     (async () => {
       if (address) {
-        const { network } = await getNetwork();
         const core = ceramicCoreFactory();
         let userDID;
         try {
-          userDID = await core.getAccountDID(`${address}@eip155:${network.chainId}`);
+          userDID = await core.getAccountDID(`${address}@eip155:${context.targetNetwork.chainId}`);
         } catch (error) {
           console.log(error);
           const profile = await init();

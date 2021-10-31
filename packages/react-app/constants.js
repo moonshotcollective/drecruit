@@ -1,6 +1,7 @@
 //require("dotenv");
 // MY INFURA_ID, SWAP IN YOURS FROM https://infura.io/dashboard/ethereum
-export const INFURA_ID = process.env.INFURA_ID;
+export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID;
+console.log({ INFURA_ID });
 // MY ETHERSCAN_ID, SWAP IN YOURS FROM https://etherscan.io/myapikey
 export const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY;
 

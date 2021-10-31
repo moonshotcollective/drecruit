@@ -1,7 +1,7 @@
 import { Badge, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
 import React, { useCallback, useEffect, useState } from "react";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
-import { getNetwork, loadDRecruitV1Contract } from "../../../helpers";
+import { loadDRecruitV1Contract } from "../../../helpers";
 
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../../../ceramic";
 import modelAliases from "../../../model.json";
@@ -9,8 +9,10 @@ import { Button } from "@chakra-ui/button";
 import { Avatar } from "@chakra-ui/avatar";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { Layout } from "../../../components/layout/Layout";
+import { Web3Context } from "../../../helpers/Web3Context";
 
 function ApproveShareContactInformation() {
+  const context = useContext(Web3Context);
   const [contract, setContract] = useState();
   const [requesters, setRequesters] = useState();
   const [accessRequests, setAccessRequests] = useState();
@@ -18,23 +20,27 @@ function ApproveShareContactInformation() {
   const [myPrivateProfile, setMyPrivateProfile] = useState();
 
   const init = async () => {
-    const dRecruitV1Contract = await loadDRecruitV1Contract();
-    setContract(dRecruitV1Contract);
-    const { network } = await getNetwork();
-    const addresses = await window.ethereum.enable();
-    console.log(addresses);
-    const self = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-      ceramic: CERAMIC_TESTNET,
-      connectNetwork: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
-    setMySelf(self);
-    const privateProfile = await self.get("privateProfile");
-    setMyPrivateProfile(privateProfile);
-    const reqs = await dRecruitV1Contract.getRequesters(privateProfile.tokenId);
-    console.log(reqs);
-    setRequesters(reqs);
+    if (context.injectedProvider && context.injectedProvider.getSigner()) {
+      const dRecruitV1Contract = await loadDRecruitV1Contract(
+        context.targetNetwork,
+        context.injectedProvider.getSigner(),
+      );
+      setContract(dRecruitV1Contract);
+      const addresses = await window.ethereum.enable();
+      console.log(addresses);
+      const self = await SelfID.authenticate({
+        authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
+        ceramic: CERAMIC_TESTNET,
+        connectNetwork: CERAMIC_TESTNET,
+        model: modelAliases,
+      });
+      setMySelf(self);
+      const privateProfile = await self.get("privateProfile");
+      setMyPrivateProfile(privateProfile);
+      const reqs = await dRecruitV1Contract.getRequesters(privateProfile.tokenId);
+      console.log(reqs);
+      setRequesters(reqs);
+    }
   };
   useEffect(() => {
     init();
@@ -42,11 +48,10 @@ function ApproveShareContactInformation() {
 
   const handleApproval = useCallback(
     async requesterAddress => {
-      const { network } = await getNetwork();
       const decrypted = await await mySelf.client.ceramic.did?.decryptDagJWE(JSON.parse(myPrivateProfile.encrypted));
       console.log({ decrypted });
       const core = ceramicCoreFactory();
-      const recruiter = `${requesterAddress}@eip155:${network.chainId}`;
+      const recruiter = `${requesterAddress}@eip155:${context.targetNetwork.chainId}`;
       console.log({ recruiter });
       const did = await core.getAccountDID(recruiter);
       console.log({ did });

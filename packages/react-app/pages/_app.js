@@ -30,7 +30,7 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <Web3Provider network="localhost">
+    <Web3Provider network="mumbai">
       <ChakraProvider>
         <ThemeSwitcherProvider themeMap={themes} defaultTheme={prevTheme.current}>
           <>

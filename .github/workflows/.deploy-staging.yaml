@@ -1,0 +1,35 @@
+name: Deploy to heroku web app (staging)
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging
+      - name: Release staging web app
+        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.HEROKU_WEB_STAGING_APP_NAME}} #Must be unique in Heroku
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+        env:
+          HD_APP_BASE: "packages/react-app"
+          REACT_APP_NETWORK_NAME: mumbai
+          REACT_APP_API_URL: http://drecruit-api-staging.herokuapp.com/
+      - name: Release staging API
+        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.HEROKU_API_STAGING_APP_NAME}} #Must be unique in Heroku
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+        env:
+          HD_APP_BASE: "packages/backend"
+          DB_URL: ${{secrets.DB_URL}}
+          COOKIE_KEY: ${{secrets.COOKIE_KEY}}
+          CERAMIC_SEED: ${{secrets.CERAMIC_SEED}}

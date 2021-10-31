@@ -13,6 +13,7 @@ import { Web3Context } from "../../helpers/Web3Context";
 import { getNetwork, loadDRecruitV1Contract } from "../../helpers";
 
 const EditPrivateProfilePage = () => {
+  const context = useContext(Web3Context);
   const [mySelf, setMySelf] = useState();
   const [did, setDid] = useState();
   const [address, setAddress] = useState();
@@ -51,10 +52,9 @@ const EditPrivateProfilePage = () => {
     (async () => {
       if (address) {
         const core = ceramicCoreFactory();
-        const { network } = await getNetwork();
         let userDID;
         try {
-          userDID = await core.getAccountDID(`${address}@eip155:${network.chainId}`);
+          userDID = await core.getAccountDID(`${address}@eip155:${context.targetNetwork.chainId}`);
         } catch (error) {
           console.log(error);
           const profile = await init();
@@ -128,7 +128,7 @@ const EditPrivateProfilePage = () => {
       });
     console.log({ developerTokenURI });
     try {
-      const contract = await loadDRecruitV1Contract();
+      const contract = await loadDRecruitV1Contract(context.targetNetwork, context.injectedProvider.getSigner());
       const tx = await contract.mint(developerTokenURI, 0);
       const receipt = await tx.wait();
       console.log({ receipt });
