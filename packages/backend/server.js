@@ -13,21 +13,19 @@ const KeyDidResolver = require("key-did-resolver");
 const { Ceramic } = require("@ceramicnetwork/core");
 const { Auth, Info, Resume } = require("./models");
 const DRecruitAbi = require("./config/DRecruitAbi.json");
-
-const dagJoseFormat = convert(dagJose);
-let ipfs;
-
-const provider = new Ed25519Provider(
-  Buffer.from(process.env.CERAMIC_SEED, "hex")
+const rpcProvider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+const dRecruitContract = new ethers.Contract(
+  process.env.CONTRACT_ADDRESS,
+  DRecruitAbi,
+  rpcProvider
 );
-const did = new DID({ provider, resolver: KeyDidResolver.getResolver() });
-const ceramicCore = new Core({
+
+const core = new Core({
   ceramic: "testnet-clay",
 });
+const { makeCeramicClient } = require("./helpers");
 
-const rpcProvider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
-const dRecruitContract = new ethers.Contract(process.env.CONTRACT_ADDRESS, DRecruitAbi, rpcProvider);
-
+let ceramic;
 fastify.register(require("fastify-secure-session"), {
   cookieName: "drecruit-session",
   key: process.env.COOKIE_KEY,
@@ -40,7 +38,7 @@ fastify.register(require("fastify-secure-session"), {
 });
 
 fastify.get("/did", async (request, reply) => {
-  return ceramicCore.ceramic.did.id;
+  return ceramic.did.id;
 });
 
 fastify.get("/nonce/:address", async (request, reply) => {
@@ -121,15 +119,20 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
     if (!/^0x[A-Za-z0-9]{40}$/.test(userAddress)) {
       return { statusCode: 401, message: "Invalid/missing address in session" }; // validate that address exists in session
     }
-    const userBalance = dRecruitContract.balanceOf(
+    const userBalance = await dRecruitContract.balanceOf(
       userAddress,
       request.params.tokenId
     );
     if (userBalance >= 1) {
-      const userBalance = dRecruitContract.uri(request.params.tokenId);
-      const jwe = await ipfs.dag.get(result.contentId);
-      const cleartext = await did.decryptDagJWE(jwe);
-      return { message: cleartext };
+      const tokenURI = await dRecruitContract.uri(request.params.tokenId);
+      const { did } = getDidFromTokenURI(tokenURI);
+      const privateProfile = await core.get("privateProfile", did);
+      console.log({ privateProfile });
+      const decryptedData = await ceramic.did.decryptDagJWE(
+        privateProfile.encrypted
+      );
+      console.log({ decryptedData });
+      return { decryptedData };
     } else {
       return {
         statusCode: 401,
@@ -146,11 +149,7 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
 const start = async () => {
   try {
     await mongoose.connect(process.env.DB_URL);
-    // ipfs = await Ipfs.create({ ipld: { formats: [dagJoseFormat] } });
-    // const ceramic = await Ceramic.create(ipfs);
-    // ceramic.did = did;
-    // ceramic.did.setProvider(provider);
-    // await ceramic.did.authenticate();
+    ceramic = await makeCeramicClient();
     fastify.log.info("DB connected");
     await fastify.listen(process.env.PORT || 5000);
   } catch (err) {
