@@ -137,6 +137,7 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
       userAddress,
       request.params.tokenId
     );
+    console.log(parseInt(userBalance.toString(), 10));
     if (parseInt(userBalance.toString(), 10) >= 1) {
       const tokenURI = await dRecruitContract.uri(request.params.tokenId);
       const { did } = getDidFromTokenURI(tokenURI);
@@ -146,7 +147,8 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
       const decryptedProfile = await ceramic.did.decryptDagJWE(
         JSON.parse(privateProfile.encrypted)
       );
-      return { decryptedProfile };
+      console.log({ decryptedProfile });
+      return { statusCode: 200, decryptedProfile };
     } else {
       return {
         statusCode: 401,

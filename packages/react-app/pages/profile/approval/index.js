@@ -1,5 +1,5 @@
 import { Badge, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { loadDRecruitV1Contract } from "../../../helpers";
 
@@ -16,59 +16,43 @@ function ApproveShareContactInformation() {
   const [contract, setContract] = useState();
   const [requesters, setRequesters] = useState();
   const [accessRequests, setAccessRequests] = useState();
-  const [mySelf, setMySelf] = useState();
   const [myPrivateProfile, setMyPrivateProfile] = useState();
 
   const init = async () => {
-    if (context.injectedProvider && context.injectedProvider.getSigner()) {
+    if (context.injectedProvider && context.injectedProvider.getSigner() && context.self) {
       const dRecruitV1Contract = await loadDRecruitV1Contract(
         context.targetNetwork,
         context.injectedProvider.getSigner(),
       );
       setContract(dRecruitV1Contract);
       const addresses = await window.ethereum.enable();
-      console.log(addresses);
-      const self = await SelfID.authenticate({
-        authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-        ceramic: CERAMIC_TESTNET,
-        connectNetwork: CERAMIC_TESTNET,
-        model: modelAliases,
-      });
-      setMySelf(self);
-      const privateProfile = await self.get("privateProfile");
+      const privateProfile = await context.self.get("privateProfile");
+      if (!privateProfile) {
+        return;
+      }
       setMyPrivateProfile(privateProfile);
       const reqs = await dRecruitV1Contract.getRequesters(privateProfile.tokenId);
-      console.log(reqs);
       setRequesters(reqs);
     }
   };
   useEffect(() => {
     init();
-  }, []);
+  }, [context]);
 
   const handleApproval = useCallback(
     async requesterAddress => {
-      const decrypted = await await mySelf.client.ceramic.did?.decryptDagJWE(JSON.parse(myPrivateProfile.encrypted));
+      const decrypted = await context.self.client.ceramic.did?.decryptDagJWE(JSON.parse(myPrivateProfile.encrypted));
       console.log({ decrypted });
       const core = ceramicCoreFactory();
       const recruiter = `${requesterAddress}@eip155:${context.targetNetwork.chainId}`;
       console.log({ recruiter });
       const did = await core.getAccountDID(recruiter);
-      console.log({ did });
-      const newDagJWE = await mySelf.client.ceramic.did?.createDagJWE(decrypted, [
-        // logged-in user,
-        mySelf.id,
-        did,
-      ]);
+      console.log({ requesterAddress });
       const tx = await contract.approveRequest(myPrivateProfile.tokenId, requesterAddress);
       const receipt = await tx.wait();
-      console.log({ receipt });
-      return mySelf.set("privateProfile", {
-        ...myPrivateProfile,
-        encrypted: JSON.stringify(newDagJWE),
-      });
+      return receipt;
     },
-    [mySelf, myPrivateProfile],
+    [context, myPrivateProfile],
   );
   return (
     <Layout>

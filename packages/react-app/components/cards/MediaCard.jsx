@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { Box, Flex, Stack, Heading, Code, HStack } from "@chakra-ui/layout";
 import {
@@ -16,7 +16,10 @@ import {
 import { Icon, EmailIcon, InfoIcon, PhoneIcon } from "@chakra-ui/icons";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { GrLocation } from "react-icons/gr";
+import { ethers } from "ethers";
 import axios from "axios";
+
+import { Web3Context } from "../../helpers/Web3Context";
 
 function MediaCard({
   avatarSrc,
@@ -33,7 +36,7 @@ function MediaCard({
   secondaryActionOnClick,
   secondaryAction,
   privateProfile,
-  self,
+  dRecruitContract,
 }) {
   const [decryptedData, setDecryptedData] = useState();
   const [canView, setCanView] = useState(false);
@@ -42,24 +45,33 @@ function MediaCard({
     let isValidRecipient = false;
     (async () => {
       try {
-        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
           withCredentials: true,
         });
-        console.log({ data });
+        console.log({ response });
+        if (response.data.statusCode !== 200) {
+          return setCanView(false);
+        }
         setCanView(true);
-        setDecryptedData(data.decryptedProfile);
+        setDecryptedData(response.data.decryptedProfile);
       } catch (error) {
         setCanView(false);
       }
     })();
   }, [privateProfile]);
 
-  const handleSecondaryAction = useCallback(async () => {
-    const decryptedData = await secondaryActionOnClick(JSON.parse(privateProfile.encrypted));
-    console.log({ decryptedData });
-    setDecryptedData(decryptedData);
-    return decryptedData;
-  }, [privateProfile]);
+  const handleRequestPrivateProfileUnlock = async () => {
+    console.log(privateProfile);
+    const tx = await dRecruitContract.request(privateProfile.tokenId, {
+      value: ethers.utils.parseEther("0.1"),
+    });
+    const receipt = await tx.wait();
+    console.log({ receipt });
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
+      withCredentials: true,
+    });
+    return data;
+  };
 
   return (
     <Box
@@ -144,7 +156,7 @@ function MediaCard({
           w={"full"}
           mt={8}
           // TODO: get dev main address
-          onClick={() => primaryActionOnClick(privateProfile)}
+          onClick={handleRequestPrivateProfileUnlock}
         >
           {canView ? "✔️ Informations already unlocked" : primaryAction}
         </Button>

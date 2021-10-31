@@ -74,20 +74,6 @@ function Home() {
     init();
   }, [context]);
 
-  const handleRequestPrivateProfileUnlock = async privateProfile => {
-    console.log(privateProfile);
-    const tx = await dRecruitContract.request(privateProfile.tokenId, {
-      value: ethers.utils.parseEther("0.1"),
-    });
-    const receipt = await tx.wait();
-    console.log({ receipt });
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
-      withCredentials: true,
-    });
-    console.log({ data });
-    return data.decryptedProfile;
-  };
-
   return (
     <Layout>
       <HomeActions contract={dRecruitContract} mySelf={context.self} />
@@ -106,10 +92,9 @@ function Home() {
               date={`Birthdate: ${basicProfile.birthDate}`}
               primaryAction="Unlock contact informations"
               secondaryAction="View contact informations"
+              dRecruitContract={dRecruitContract}
               hasWebAccount={!!webAccounts}
-              self={context.self}
               privateProfile={privateProfile}
-              primaryActionOnClick={handleRequestPrivateProfileUnlock}
             />
           );
         })}

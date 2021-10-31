@@ -13,7 +13,6 @@ const EditProfilePage = () => {
   const { address, targetNetwork, self } = useContext(Web3Context);
   console.log({ address });
   const router = useRouter();
-  const [did, setDid] = useState();
   const [imageURL, setImageURL] = useState();
   const [backgroundURL, setBackgroundURL] = useState();
   const image = useRef(null);
@@ -37,7 +36,6 @@ const EditProfilePage = () => {
           userDID = self.id;
         }
         if (userDID) {
-          setDid(userDID);
           const result = await core.get("basicProfile", userDID);
           console.log({ result });
           if (!result) return;
