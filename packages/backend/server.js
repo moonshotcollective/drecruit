@@ -1,6 +1,8 @@
 require("dotenv").config();
 const fastify = require("fastify")({ logger: true });
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const Ipfs = require("ipfs-core");
 const dagJose = require("dag-jose");
 const { Core } = require("@self.id/core");
@@ -8,9 +10,13 @@ const { ethers } = require("ethers");
 const { nanoid } = require("nanoid");
 const { convert } = require("blockcodec-to-ipld-format");
 const { DID } = require("dids");
+const sodium = require("sodium-native");
 const { Ed25519Provider } = require("key-did-provider-ed25519");
 const KeyDidResolver = require("key-did-resolver");
 const { Ceramic } = require("@ceramicnetwork/core");
+
+const { makeCeramicClient, getDidFromTokenURI } = require("./helpers");
+const model = require("./model.json");
 const { Auth, Info, Resume } = require("./models");
 const DRecruitAbi = require("./config/DRecruitAbi.json");
 const rpcProvider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
@@ -22,16 +28,17 @@ const dRecruitContract = new ethers.Contract(
 
 const core = new Core({
   ceramic: "testnet-clay",
+  model,
 });
-const { makeCeramicClient } = require("./helpers");
 
 let ceramic;
 fastify.register(require("fastify-cors"), {
   origin: ["http://localhost:3000"],
+  credentials: true,
 });
 fastify.register(require("fastify-secure-session"), {
   cookieName: "drecruit-session",
-  key: process.env.COOKIE_KEY,
+  key: Buffer.from(process.env.COOKIE_KEY, "hex"),
   cookie: {
     path: "/",
     httpOnly: true,
@@ -71,6 +78,8 @@ fastify.post("/verify/:address", async (request, reply) => {
     const result = await Auth.findOne({
       address: request.params.address,
     }).lean();
+
+    console.log({ result });
     if (!result) {
       return { statusCode: 403, message: "No nonce exists for address" };
     }
@@ -78,8 +87,9 @@ fastify.post("/verify/:address", async (request, reply) => {
       result.message,
       request.body.signature
     );
-    if (decodedAddress === request.params.address) {
-      request.session.set("address", decodedAddress);
+    if (decodedAddress.toLowerCase() === request.params.address) {
+      const cookieSession = request.session.set("address", decodedAddress);
+      console.log({ cookieSession });
       return { statusCode: 200 };
     } else {
       return { statusCode: 401 };
@@ -127,16 +137,16 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
       userAddress,
       request.params.tokenId
     );
-    if (userBalance >= 1) {
+    if (parseInt(userBalance.toString(), 10) >= 1) {
       const tokenURI = await dRecruitContract.uri(request.params.tokenId);
       const { did } = getDidFromTokenURI(tokenURI);
+      console.log({ did });
       const privateProfile = await core.get("privateProfile", did);
       console.log({ privateProfile });
-      const decryptedData = await ceramic.did.decryptDagJWE(
-        privateProfile.encrypted
+      const decryptedProfile = await ceramic.did.decryptDagJWE(
+        JSON.parse(privateProfile.encrypted)
       );
-      console.log({ decryptedData });
-      return { decryptedData };
+      return { decryptedProfile };
     } else {
       return {
         statusCode: 401,

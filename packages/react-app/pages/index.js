@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Core } from "@self.id/core";
+import axios from "axios";
 import { Code } from "@chakra-ui/react";
 import { Box, Heading, SimpleGrid, VStack } from "@chakra-ui/layout";
 import { Web3Context } from "../helpers/Web3Context";
@@ -41,7 +42,6 @@ function Home() {
   const [inputEmail, setInputEmail] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [developerProfiles, setDeveloperProfiles] = useState([]);
-  const [mySelf, setMySelf] = useState();
   const [dRecruitContract, setDRecruitContract] = useState();
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
@@ -51,16 +51,6 @@ function Home() {
       const signer = context.injectedProvider.getSigner();
       const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
       setDRecruitContract(contract);
-      const addresses = await window.ethereum.enable();
-      console.log(addresses);
-      const self = await SelfID.authenticate({
-        authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-        ceramic: CERAMIC_TESTNET,
-        connectNetwork: CERAMIC_TESTNET,
-        model: modelAliases,
-      });
-      console.log({ self });
-      setMySelf(self);
       const lastTokenId = await contract.getLastTokenId();
       const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
       const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
@@ -82,7 +72,7 @@ function Home() {
 
   useEffect(() => {
     init();
-  }, []);
+  }, [context]);
 
   const handleRequestPrivateProfileUnlock = async privateProfile => {
     console.log(privateProfile);
@@ -91,12 +81,16 @@ function Home() {
     });
     const receipt = await tx.wait();
     console.log({ receipt });
-    return receipt;
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
+      withCredentials: true,
+    });
+    console.log({ data });
+    return data.decryptedProfile;
   };
 
   return (
     <Layout>
-      <HomeActions contract={dRecruitContract} mySelf={mySelf} />
+      <HomeActions contract={dRecruitContract} mySelf={context.self} />
       <SimpleGrid columns={4} spacing={10}>
         {developerProfiles.map(({ did, basicProfile, webAccounts, privateProfile }) => {
           const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
@@ -113,7 +107,7 @@ function Home() {
               primaryAction="Unlock contact informations"
               secondaryAction="View contact informations"
               hasWebAccount={!!webAccounts}
-              self={mySelf}
+              self={context.self}
               privateProfile={privateProfile}
               primaryActionOnClick={handleRequestPrivateProfileUnlock}
             />

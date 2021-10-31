@@ -16,6 +16,7 @@ import {
 import { Icon, EmailIcon, InfoIcon, PhoneIcon } from "@chakra-ui/icons";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { GrLocation } from "react-icons/gr";
+import axios from "axios";
 
 function MediaCard({
   avatarSrc,
@@ -41,9 +42,12 @@ function MediaCard({
     let isValidRecipient = false;
     (async () => {
       try {
-        const decrypted = await self.client.ceramic.did.decryptDagJWE(JSON.parse(privateProfile.encrypted));
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
+          withCredentials: true,
+        });
+        console.log({ data });
         setCanView(true);
-        setDecryptedData(decrypted);
+        setDecryptedData(data.decryptedProfile);
       } catch (error) {
         setCanView(false);
       }

@@ -363,12 +363,16 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     setSelf(mySelf);
 
     const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${address}`);
-    console.log({ data });
     const signature = await provider.provider.send("personal_sign", [data.message, address]);
-    console.log({ signature });
-    const verifyResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/verify/${address}`, {
-      signature: signature.result,
-    });
+    const verifyResponse = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/verify/${address}`,
+      {
+        signature: signature.result,
+      },
+      {
+        withCredentials: true,
+      },
+    );
     if (verifyResponse.status !== 200) {
       throw new Error("Unauthorized");
     }

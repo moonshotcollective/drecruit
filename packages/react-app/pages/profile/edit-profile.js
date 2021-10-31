@@ -10,11 +10,10 @@ import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from ".
 import { Web3Context } from "../../helpers/Web3Context";
 
 const EditProfilePage = () => {
-  const context = useContext(Web3Context);
+  const { address, targetNetwork, self } = useContext(Web3Context);
+  console.log({ address });
   const router = useRouter();
-  const [mySelf, setMySelf] = useState();
   const [did, setDid] = useState();
-  const [address, setAddress] = useState();
   const [imageURL, setImageURL] = useState();
   const [backgroundURL, setBackgroundURL] = useState();
   const image = useRef(null);
@@ -26,23 +25,6 @@ const EditProfilePage = () => {
     setValue,
   } = useForm();
 
-  const init = async () => {
-    const addresses = await window.ethereum.enable();
-    const self = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-      ceramic: CERAMIC_TESTNET_NODE_URL,
-      connectNetwork: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
-    setMySelf(self);
-    setAddress(addresses[0]);
-    return self;
-  };
-
-  useEffect(() => {
-    init();
-  }, []);
-
   useEffect(() => {
     // fetch from Ceramic
     (async () => {
@@ -50,12 +32,9 @@ const EditProfilePage = () => {
         const core = ceramicCoreFactory();
         let userDID;
         try {
-          userDID = await core.getAccountDID(`${address}@eip155:${context.targetNetwork.chainId}`);
+          userDID = await core.getAccountDID(`${address}@eip155:${targetNetwork.chainId}`);
         } catch (error) {
-          console.log(error);
-          const profile = await init();
-          console.log({ profile });
-          userDID = profile.id;
+          userDID = self.id;
         }
         if (userDID) {
           setDid(userDID);
@@ -124,9 +103,6 @@ const EditProfilePage = () => {
         .then(response => {
           return response.cids;
         });
-      // .finally(() => {
-      //   setProgress(false);
-      // });
       const refs = { image: image.current, background: background.current };
 
       ["image", "background"].forEach(key => {
@@ -153,7 +129,7 @@ const EditProfilePage = () => {
     if (!backgroundFile) {
       delete values["background"];
     }
-    await mySelf.client.dataStore.merge("basicProfile", values);
+    await self.client.dataStore.merge("basicProfile", values);
     return router.push("/profile/edit-private-profile");
   };
   return (
