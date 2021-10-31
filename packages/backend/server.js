@@ -3,6 +3,7 @@ const fastify = require("fastify")({ logger: true });
 const mongoose = require("mongoose");
 const Ipfs = require("ipfs-core");
 const dagJose = require("dag-jose");
+const { Core } = require("@self.id/core");
 const { ethers } = require("ethers");
 const { nanoid } = require("nanoid");
 const { convert } = require("blockcodec-to-ipld-format");
@@ -19,7 +20,9 @@ const provider = new Ed25519Provider(
   Buffer.from(process.env.CERAMIC_SEED, "hex")
 );
 const did = new DID({ provider, resolver: KeyDidResolver.getResolver() });
-let ceramic;
+const ceramicCore = new Core({
+  ceramic: "testnet-clay",
+});
 
 fastify.register(require("fastify-secure-session"), {
   cookieName: "drecruit-session",
@@ -32,8 +35,8 @@ fastify.register(require("fastify-secure-session"), {
   },
 });
 
-fastify.get("/", async (request, reply) => {
-  return "dRecruit API";
+fastify.get("/did", async (request, reply) => {
+  return ceramicCore.ceramic.did.id;
 });
 
 fastify.get("/nonce/:address", async (request, reply) => {
@@ -120,6 +123,7 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
     );
     if (userBalance >= 1) {
       // this will ideally be changed to fetching the CID from the stream, and the stream ID is stored on-chain
+
       const result = await Info.findOne({
         tokenId: request.params.tokenId,
       }).lean();
@@ -142,13 +146,13 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
 const start = async () => {
   try {
     await mongoose.connect(process.env.DB_URL);
-    ipfs = await Ipfs.create({ ipld: { formats: [dagJoseFormat] } });
-    const ceramic = await Ceramic.create(ipfs);
-    ceramic.did = did;
-    ceramic.did.setProvider(provider);
-    await ceramic.did.authenticate();
+    // ipfs = await Ipfs.create({ ipld: { formats: [dagJoseFormat] } });
+    // const ceramic = await Ceramic.create(ipfs);
+    // ceramic.did = did;
+    // ceramic.did.setProvider(provider);
+    // await ceramic.did.authenticate();
     fastify.log.info("DB connected");
-    await fastify.listen(3000);
+    await fastify.listen(process.env.PORT || 5000);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
