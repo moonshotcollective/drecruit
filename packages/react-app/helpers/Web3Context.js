@@ -10,7 +10,7 @@ import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 import Fortmatic from "fortmatic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 //import Torus from "@toruslabs/torus-embed"
-import WalletLink from "walletlink";
+// import WalletLink from "walletlink";
 import Web3Modal from "web3modal";
 import { INFURA_ID, NETWORK, NETWORKS } from "../constants";
 import { Transactor } from "../helpers";
@@ -74,12 +74,12 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   */
   const web3Modal = useMemo(() => {
     // Coinbase walletLink init
-    const walletLink = new WalletLink({
-      appName: "coinbase",
-    });
+    // const walletLink = new WalletLink({
+    //   appName: "coinbase",
+    // });
 
-    // WalletLink provider
-    const walletLinkProvider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/${INFURA_ID}`, 1);
+    // // WalletLink provider
+    // const walletLinkProvider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/${INFURA_ID}`, 1);
 
     // Portis ID: 6255fb2b-58c8-433b-a2c9-62098c05ddc9
     return new Web3Modal({
@@ -129,18 +129,18 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
         //     },
         //   },
         // },
-        "custom-walletlink": {
-          display: {
-            logo: "https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0",
-            name: "Coinbase",
-            description: "Connect to Coinbase Wallet (not Coinbase App)",
-          },
-          package: walletLinkProvider,
-          connector: async (provider, _options) => {
-            await provider.enable();
-            return provider;
-          },
-        },
+        // "custom-walletlink": {
+        //   display: {
+        //     logo: "https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0",
+        //     name: "Coinbase",
+        //     description: "Connect to Coinbase Wallet (not Coinbase App)",
+        //   },
+        //   package: walletLinkProvider,
+        //   connector: async (provider, _options) => {
+        //     await provider.enable();
+        //     return provider;
+        //   },
+        // },
         authereum: {
           package: Authereum, // required
         },
