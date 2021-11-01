@@ -1,4 +1,4 @@
-import { Button } from "@chakra-ui/react";
+import { Button, HStack } from "@chakra-ui/react";
 import { Box, Flex, Heading } from "@chakra-ui/layout";
 import { ethers } from "ethers";
 import { useRouter } from "next/dist/client/router";
@@ -13,15 +13,20 @@ export const HomeActions = ({ contract, mySelf }) => {
     const receipt = await tx.wait();
     console.log({ receipt });
   };
-  const handleJoinAsDeveloper = () => {
-    return router.push("/profile/edit-profile");
+  const handleRouteChange = () => {
+    return router.push();
   };
   return (
     <Flex flexDirection="column" justifyContent="center" alignItems="center" w="full">
       <Heading>Welcome to dRecruit!</Heading>
-      <Button m="5" size="lg" colorScheme="purple" onClick={handleJoinAsDeveloper}>
-        JOIN AS A BUILDER
-      </Button>
+      <HStack>
+        <Button m="5" size="lg" colorScheme="purple" onClick={() => router.push("/profile/edit-profile")}>
+          JOIN AS A BUILDER
+        </Button>
+        <Button m="5" size="lg" colorScheme="green" onClick={() => router.push("/profile/approval")}>
+          APPROVE REQUESTS
+        </Button>
+      </HStack>
     </Flex>
   );
 };
