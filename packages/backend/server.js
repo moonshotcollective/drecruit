@@ -133,10 +133,12 @@ fastify.get("/unlock/:tokenId", async (request, reply) => {
     if (!/^0x[A-Za-z0-9]{40}$/.test(userAddress)) {
       return { statusCode: 401, message: "Invalid/missing address in session" }; // validate that address exists in session
     }
+    console.log({ userAddress });
     const userBalance = await dRecruitContract.balanceOf(
       userAddress,
       request.params.tokenId
     );
+    console.log({ userBalance });
     console.log(parseInt(userBalance.toString(), 10));
     if (parseInt(userBalance.toString(), 10) >= 1) {
       const tokenURI = await dRecruitContract.uri(request.params.tokenId);

@@ -40,7 +40,6 @@ function MediaCard({
 }) {
   const [decryptedData, setDecryptedData] = useState();
   const [canView, setCanView] = useState(false);
-
   useEffect(() => {
     let isValidRecipient = false;
     (async () => {

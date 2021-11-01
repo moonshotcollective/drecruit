@@ -9,3 +9,9 @@ and if you want to clear the state of the contract
 ```bash
 yarn deploy --network mumbai --reset
 ```
+
+Verify the contract
+
+```bash
+npx hardhat verify --network mumbai [CONTRACT_ADDRESS]
+```
