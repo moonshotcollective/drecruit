@@ -398,7 +398,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
 
     // Subscribe to session disconnection
     connection.on("disconnect", (code, reason) => {
-      mySelf.client.ceramic.close().then(logoutOfWeb3Modal);
+      logoutOfWeb3Modal();
     });
   }, [setInjectedProvider]);
 
