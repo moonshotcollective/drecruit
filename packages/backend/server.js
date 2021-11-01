@@ -33,7 +33,11 @@ const core = new Core({
 
 let ceramic;
 fastify.register(require("fastify-cors"), {
-  origin: ["http://localhost:3000"],
+  origin: [
+    "http://localhost:3000",
+    "https://drecruit-web-staging.herokuapp.com",
+    "http://drecruit-web-staging.herokuapp.com",
+  ],
   credentials: true,
 });
 fastify.register(require("fastify-secure-session"), {
