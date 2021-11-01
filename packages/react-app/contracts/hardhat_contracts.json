@@ -1096,7 +1096,7 @@
       "chainId": "80001",
       "contracts": {
         "DRecruitV1": {
-          "address": "0x50C6edc0d4204c8e8Af47Cc0773D3B16E8723e43",
+          "address": "0x9486cB9438b3279D70c55681B41bf50b5c537Aa4",
           "abi": [
             {
               "inputs": [],

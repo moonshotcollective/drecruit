@@ -1,6 +1,8 @@
 import Portis from "@portis/web3";
 import WalletConnectProvider from "@walletconnect/web3-provider";
+import { EthereumAuthProvider, SelfID } from "@self.id/web";
 import { Alert, Button } from "antd";
+import axios from "axios";
 import "antd/dist/antd.css";
 import Authereum from "authereum";
 import { useBalance, useContractLoader, useGasPrice, useOnBlock, useUserProviderAndSigner } from "eth-hooks";
@@ -8,11 +10,13 @@ import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 import Fortmatic from "fortmatic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 //import Torus from "@toruslabs/torus-embed"
-import WalletLink from "walletlink";
+// import WalletLink from "walletlink";
 import Web3Modal from "web3modal";
 import { INFURA_ID, NETWORK, NETWORKS } from "../constants";
 import { Transactor } from "../helpers";
 import { useContractConfig } from "../hooks";
+import { CERAMIC_TESTNET } from "../ceramic";
+import modelAliases from "../model.json";
 
 const { ethers } = require("ethers");
 
@@ -21,7 +25,6 @@ export const Web3Context = React.createContext({});
 
 // provider Component that wraps the entire app and provides context variables
 export function Web3Provider({ children, network = "localhost", DEBUG = false, NETWORKCHECK = true, ...props }) {
-  console.log({ network });
   // for Nextjs Builds, return null until "window" is available
   if (!global.window) {
     return null;
@@ -30,7 +33,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   // app states
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
-
+  const [self, setSelf] = useState();
   /// 📡 What chain are your contracts deployed to?
   const targetNetwork = NETWORKS[network]; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
@@ -71,12 +74,12 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   */
   const web3Modal = useMemo(() => {
     // Coinbase walletLink init
-    const walletLink = new WalletLink({
-      appName: "coinbase",
-    });
+    // const walletLink = new WalletLink({
+    //   appName: "coinbase",
+    // });
 
-    // WalletLink provider
-    const walletLinkProvider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/${INFURA_ID}`, 1);
+    // // WalletLink provider
+    // const walletLinkProvider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/${INFURA_ID}`, 1);
 
     // Portis ID: 6255fb2b-58c8-433b-a2c9-62098c05ddc9
     return new Web3Modal({
@@ -126,18 +129,18 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
         //     },
         //   },
         // },
-        "custom-walletlink": {
-          display: {
-            logo: "https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0",
-            name: "Coinbase",
-            description: "Connect to Coinbase Wallet (not Coinbase App)",
-          },
-          package: walletLinkProvider,
-          connector: async (provider, _options) => {
-            await provider.enable();
-            return provider;
-          },
-        },
+        // "custom-walletlink": {
+        //   display: {
+        //     logo: "https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0",
+        //     name: "Coinbase",
+        //     description: "Connect to Coinbase Wallet (not Coinbase App)",
+        //   },
+        //   package: walletLinkProvider,
+        //   connector: async (provider, _options) => {
+        //     await provider.enable();
+        //     return provider;
+        //   },
+        // },
         authereum: {
           package: Authereum, // required
         },
@@ -345,22 +348,56 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   }
 
   const loadWeb3Modal = useCallback(async () => {
-    const provider = await web3Modal.connect();
-    setInjectedProvider(new ethers.providers.Web3Provider(provider));
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    // const signer = provider.getSigner();
+    const address = provider.provider.selectedAddress;
+    setInjectedProvider(provider);
+    const mySelf = await SelfID.authenticate({
+      authProvider: new EthereumAuthProvider(provider.provider, provider.provider.selectedAddress),
+      ceramic: CERAMIC_TESTNET,
+      connectNetwork: CERAMIC_TESTNET,
+      model: modelAliases,
+    });
+    console.log("curr self", mySelf.id);
+    setSelf(mySelf);
 
-    provider.on("chainChanged", chainId => {
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${address}`);
+    const signature = await provider.provider.send("personal_sign", [data.message, address]);
+    const verifyResponse = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/verify/${address}`,
+      {
+        signature: signature.result,
+      },
+      {
+        withCredentials: true,
+      },
+    );
+    if (verifyResponse.status !== 200) {
+      throw new Error("Unauthorized");
+    }
+
+    connection.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      setInjectedProvider(provider);
     });
 
-    provider.on("accountsChanged", () => {
-      console.log(`account changed!`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
+    connection.on("accountsChanged", newAccounts => {
+      // TODO: Issue still open https://github.com/ceramicstudio/3id-connect/issues/161
+      SelfID.authenticate({
+        authProvider: new EthereumAuthProvider(provider.provider, newAccounts[0]),
+        ceramic: CERAMIC_TESTNET,
+        connectNetwork: CERAMIC_TESTNET,
+        model: modelAliases,
+      }).then(async newSelf => {
+        console.log("new Self", newSelf.id);
+        setSelf(newSelf);
+        setInjectedProvider(provider);
+      });
     });
 
     // Subscribe to session disconnection
-    provider.on("disconnect", (code, reason) => {
-      console.log(code, reason);
+    connection.on("disconnect", (code, reason) => {
       logoutOfWeb3Modal();
     });
   }, [setInjectedProvider]);
@@ -410,6 +447,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     localProvider,
     userSigner,
     readContracts,
+    self,
     writeContracts,
     mainnetProvider,
     yourMainnetBalance,

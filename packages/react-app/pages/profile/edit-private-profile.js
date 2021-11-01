@@ -11,12 +11,10 @@ import PhoneNumberInput from "../../components/inputs/PhoneNumberInput";
 import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
 import { getNetwork, loadDRecruitV1Contract } from "../../helpers";
+import axios from "axios";
 
 const EditPrivateProfilePage = () => {
-  const context = useContext(Web3Context);
-  const [mySelf, setMySelf] = useState();
-  const [did, setDid] = useState();
-  const [address, setAddress] = useState();
+  const { address, targetNetwork, injectedProvider, self } = useContext(Web3Context);
   const [imageURL, setImageURL] = useState();
   const image = useRef(null);
   const {
@@ -30,42 +28,22 @@ const EditPrivateProfilePage = () => {
     value: iso,
   }));
 
-  const init = async () => {
-    const addresses = await window.ethereum.enable();
-    const self = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(window.ethereum, addresses[0]),
-      ceramic: CERAMIC_TESTNET_NODE_URL,
-      connectNetwork: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
-    setMySelf(self);
-    setAddress(addresses[0]);
-    return self;
-  };
-
-  useEffect(() => {
-    init();
-  }, []);
-
   useEffect(() => {
     // fetch from Ceramic
     (async () => {
-      if (address) {
+      if (address && self) {
         const core = ceramicCoreFactory();
         let userDID;
         try {
-          userDID = await core.getAccountDID(`${address}@eip155:${context.targetNetwork.chainId}`);
+          userDID = await core.getAccountDID(`${address}@eip155:${targetNetwork.chainId}`);
         } catch (error) {
           console.log(error);
-          const profile = await init();
-          console.log({ profile });
-          userDID = profile.id;
+          userDID = self.id;
         }
         if (userDID) {
-          setDid(userDID);
           const result = await core.get("privateProfile", userDID);
           if (result) {
-            const decrypted = await mySelf.client.ceramic.did?.decryptDagJWE(JSON.parse(result.encrypted));
+            const decrypted = await self.client.ceramic.did?.decryptDagJWE(JSON.parse(result.encrypted));
             if (decrypted) {
               Object.entries(decrypted).forEach(([key, value]) => {
                 console.log({ key, value });
@@ -89,7 +67,7 @@ const EditPrivateProfilePage = () => {
         }
       }
     })();
-  }, [address]);
+  }, [address, self]);
 
   const onFileChange = useCallback(event => {
     const input = event.target;
@@ -107,18 +85,18 @@ const EditPrivateProfilePage = () => {
   }, []);
 
   const onSubmit = async values => {
-    console.log({ values });
-    const encryptedData = await mySelf.client.ceramic.did?.createDagJWE(values, [
+    const { data: appDid } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/did`);
+    const encryptedData = await self.client.ceramic.did?.createDagJWE(values, [
       // logged-in user,
-      mySelf.id,
+      self.id,
+      // backend ceramic did
+      appDid,
     ]);
-    // TODO: close connection on account change
-    // await mySelf.client.ceramic.close();
 
     const developerTokenURI = await fetch("/api/json-storage", {
       method: "POST",
       body: JSON.stringify({
-        did: mySelf.id,
+        did: self.id,
       }),
     })
       .then(r => r.json())
@@ -128,12 +106,12 @@ const EditPrivateProfilePage = () => {
       });
     console.log({ developerTokenURI });
     try {
-      const contract = await loadDRecruitV1Contract(context.targetNetwork, context.injectedProvider.getSigner());
+      const contract = await loadDRecruitV1Contract(targetNetwork, injectedProvider.getSigner());
       const tx = await contract.mint(developerTokenURI, 0);
       const receipt = await tx.wait();
       console.log({ receipt });
       const tokenId = receipt.events[0].args.id.toString();
-      return mySelf.client.dataStore.set("privateProfile", {
+      return self.client.dataStore.set("privateProfile", {
         tokenURI: developerTokenURI,
         tokenId: parseInt(tokenId, 10),
         encrypted: JSON.stringify(encryptedData),
