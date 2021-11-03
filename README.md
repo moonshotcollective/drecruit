@@ -35,10 +35,14 @@ yarn chain
 
 ```bash
 cd drecruit
-yarn deploy
+yarn deploy --network localhost --reset
+```
+
+Copy the contract address of the deployed contract and paste it in the .env in packages/backend for the CONTRACT_ADDRESS variable
+
+```bash
 cd packages/backend
 yarn install
-yarn global add nodemon
 yarn dev
 ```
 
@@ -49,7 +53,7 @@ cd drecruit
 yarn dev
 ```
 
-🔏 Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
+🔏 Edit your smart contract `DRecruitV1.sol` in `packages/hardhat/contracts`
 
 📝 Edit your frontend `index.js` in `packages/react-app/src/pages`
 
