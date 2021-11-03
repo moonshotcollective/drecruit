@@ -15,3 +15,6 @@ Verify the contract
 ```bash
 npx hardhat verify --network mumbai [CONTRACT_ADDRESS]
 ```
+
+After each deployment, and depending on your network, you might need to modify the environment variables in the
+backend.

@@ -1,10 +1,10 @@
-# D-Recruiter
+# dRecruit
 
 A decentralized recruiting platform built by the Moonshot Collective!
 
 # Why we built this
 
-Current recruiting sites like LinkedIn and Indeed often use candidates resumé data to build algrothims and sell information to recruiters. This is highly unethical, and candidates do not receive any compensation for the information they provide to recruiters. D-recruiter offers a solution: Candidates get paid every time a recruiter accesses their data, and d-recruiter does not use the information in unethical ways.
+Current recruiting sites like LinkedIn and Indeed often use candidates resumé data to build algrothims and sell information to recruiters. This is highly unethical, and candidates do not receive any compensation for the information they provide to recruiters. dRecruit offers a solution: Candidates get paid every time a recruiter accesses their data, and dRecruit does not use the information in unethical ways.
 
 # 🏄‍♂️ Quick Start
 
@@ -14,7 +14,7 @@ Prerequisites: [Node](https://nodejs.org/en/download/) plus [Yarn](https://class
   cd packages/react-app
 ```
 
-Copy paste the .sample.env into a new file called .env.local and add your [web3.storage](https://web3.storage) and set the value of WEB3STORAGE_TOKEN with your web3.storage API key
+**Copy-paste all .env.example files into a new file called `.env`.**
 
 > clone/fork 🏗 drecruit:
 
@@ -27,15 +27,19 @@ Copy paste the .sample.env into a new file called .env.local and add your [web3.
 ```bash
 cd drecruit
 yarn install
-yarn chain
 yarn ceramic
+yarn chain
 ```
 
-> in a second terminal window, 🛰 deploy your contract:
+> in a second terminal window, 🛰 deploy your contract, install and run the backend:
 
 ```bash
 cd drecruit
 yarn deploy
+cd packages/backend
+yarn install
+yarn global add nodemon
+yarn dev
 ```
 
 > in a third terminal window, start your 📱 frontend:
