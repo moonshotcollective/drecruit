@@ -1,4 +1,5 @@
-const { dRecruitContract, getDidFromTokenURI, selfIdCore } = require('../helpers')
+const { dRecruitContract } = require('../helpers/contract')
+const { getDidFromTokenURI, selfIdCore } = require('../helpers/ceramic')
 
 module.exports = function (fastify, opts, done) {
   fastify.get('/unlock/:tokenId', async (request, reply) => {

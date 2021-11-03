@@ -32,7 +32,7 @@ const start = async () => {
     fastify.log.info('DB connected')
     const client = await makeCeramicClient()
     fastify.decorate('ceramic', { client })
-    await fastify.listen(process.env.PORT || 5000, '0.0.0.0')
+    await fastify.listen(process.env.PORT || 5000)
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
