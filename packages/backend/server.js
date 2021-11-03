@@ -1,42 +1,36 @@
-require('dotenv').config()
-const fastify = require('fastify')({ logger: true })
-const mongoose = require('mongoose')
-const { makeCeramicClient } = require('./helpers/ceramic')
+const fastify = require("fastify")({ logger: true });
+const mongoose = require("mongoose");
+const config = require("config");
+const { makeCeramicClient } = require("./helpers/ceramic");
 
-fastify.register(require('fastify-cors'), {
-  origin: [
-    'http://localhost:3000',
-    'https://drecruit-web-staging.herokuapp.com',
-    'http://drecruit-web-staging.herokuapp.com'
-  ],
-  credentials: true
-})
+const { corsOptions, sessionOptions, dbUrl, port } =
+  config.get("API_CONFIG.api");
+fastify.register(require("fastify-cors"), {
+  ...corsOptions,
+});
 
-fastify.register(require('fastify-secure-session'), {
-  cookieName: 'drecruit-session',
-  key: Buffer.from(process.env.COOKIE_KEY, 'hex'),
+fastify.register(require("fastify-secure-session"), {
+  cookieName: sessionOptions.cookieName,
+  key: Buffer.from(sessionOptions.key, "hex"),
   cookie: {
-    path: '/',
-    httpOnly: true,
-    maxAge: 1000 * 24 * 60 * 60 * 3 // 3 days
-    // options for setCookie, see https://github.com/fastify/fastify-cookie
-  }
-})
+    ...sessionOptions.cookie,
+  },
+});
 
-fastify.register(require('./routes'))
+fastify.register(require("./routes"));
 
 // Run the server!
 const start = async () => {
   try {
-    await mongoose.connect(process.env.DB_URL)
-    fastify.log.info('DB connected')
-    const client = await makeCeramicClient()
-    fastify.decorate('ceramic', { client })
-    await fastify.listen(process.env.PORT || 5000)
+    await mongoose.connect(dbUrl);
+    fastify.log.info("DB connected");
+    const client = await makeCeramicClient();
+    fastify.decorate("ceramic", { client });
+    await fastify.listen(port || 5000);
   } catch (err) {
-    fastify.log.error(err)
-    process.exit(1)
+    fastify.log.error(err);
+    process.exit(1);
   }
-}
+};
 
-start()
+start();
