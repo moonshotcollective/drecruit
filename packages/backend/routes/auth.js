@@ -3,6 +3,20 @@ const { nanoid } = require('nanoid')
 const { Auth } = require('../models')
 
 module.exports = function (fastify, opts, done) {
+  fastify.get('/authenticated', async (request, reply) => {
+    try {
+      const userAddress = request.session.get('address')
+      if (!userAddress || !/^0x[A-Za-z0-9]{40}$/.test(userAddress)) {
+        return { authenticated: false, address: null } // validate that address exists in session
+      } else {
+        return { authenticated: true, address: userAddress }
+      }
+    } catch (err) {
+      fastify.log.error(err)
+      return { statusCode: 500 }
+    }
+  })
+
   fastify.get('/nonce/:address', async (request, reply) => {
     try {
       if (!/^0x[A-Za-z0-9]{40}$/.test(request.params.address)) {
