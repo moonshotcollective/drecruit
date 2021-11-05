@@ -1,3 +1,4 @@
+const sjson = require('secure-json-parse')
 const { dRecruitContract } = require('../helpers/contract')
 const { getDidFromTokenURI, selfIdCore } = require('../helpers/ceramic')
 
@@ -20,7 +21,7 @@ module.exports = function (fastify, opts, done) {
         const privateProfile = await selfIdCore.get('privateProfile', did)
         console.log({ privateProfile })
         const decryptedProfile = await fastify.ceramic.client.did.decryptDagJWE(
-          JSON.parse(privateProfile.encrypted)
+          sjson.parse(privateProfile.encrypted)
         )
         console.log({ decryptedProfile })
         return { decryptedProfile }
