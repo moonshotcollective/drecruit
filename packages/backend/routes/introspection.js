@@ -1,27 +1,31 @@
+const { dRecruitContract } = require('../helpers/contract')
 const { getDidFromTokenURI, selfIdCore } = require('../helpers/ceramic')
 
 module.exports = function (fastify, opts, done) {
   fastify.get('/', async (request, reply) => {
-    return { statusCode: 200, message: 'dRecruit API' }
+    return { message: 'dRecruit API' }
   })
 
   fastify.get('/did', async (request, reply) => {
     return fastify.ceramic.client.did.id
   })
 
-  fastify.get('/verify/:tokenId', async (request, reply) => {
+  fastify.get('/status/:tokenId', async (request, reply) => {
     try {
-      const { did } = getDidFromTokenURI(request.params.tokenId)
+      const tokenUri = await dRecruitContract.uri(request.params.tokenId)
+      const { did } = getDidFromTokenURI(tokenUri)
       const privateProfile = await selfIdCore.get('privateProfile', did)
       try {
         await fastify.ceramic.client.did.decryptDagJWE(JSON.parse(privateProfile.encrypted))
       } catch (err) {
-        return { statusCode: 400 }
+        reply.code(400)
+        return {}
       }
-      return { statusCode: 200 }
+      return {}
     } catch (err) {
       fastify.log.error(err)
-      return { statusCode: 500 }
+      reply.code(500)
+      return {}
     }
   })
 

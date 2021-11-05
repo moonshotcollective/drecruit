@@ -6,7 +6,8 @@ module.exports = function (fastify, opts, done) {
     try {
       const userAddress = request.session.get('address')
       if (!/^0x[A-Za-z0-9]{40}$/.test(userAddress)) {
-        return { statusCode: 401, message: 'Invalid/missing address in session' } // validate that address exists in session
+        reply.code(401)
+        return { message: 'Invalid/missing address in session' } // validate that address exists in session
       }
       const userBalance = await dRecruitContract.balanceOf(
         userAddress,
@@ -22,16 +23,15 @@ module.exports = function (fastify, opts, done) {
           JSON.parse(privateProfile.encrypted)
         )
         console.log({ decryptedProfile })
-        return { statusCode: 200, decryptedProfile }
+        return { decryptedProfile }
       } else {
-        return {
-          statusCode: 401,
-          message: 'Address does not hold required tokens'
-        }
+        reply.code(401)
+        return { message: 'Address does not hold required tokens' }
       }
     } catch (err) {
       fastify.log.error(err)
-      return { statusCode: 500 }
+      reply.code(500)
+      return {}
     }
   })
 
