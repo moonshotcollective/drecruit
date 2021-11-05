@@ -20,6 +20,8 @@ import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from ".
 import { Web3Context } from "../../helpers/Web3Context";
 import { COUNTRIES } from "../../helpers/countries";
 
+const emojis = ["🚀", "🙏", "👻", "🤌", "👀"];
+
 const EditProfilePage = () => {
   const { address, targetNetwork, self } = useContext(Web3Context);
   console.log({ address });
@@ -204,13 +206,14 @@ const EditProfilePage = () => {
             </FormControl>
             <FormControl isInvalid={errors.emoji}>
               <FormLabel htmlFor="emoji">Emoji</FormLabel>
-              <Input
-                placeholder="🚀"
-                borderColor="purple.500"
-                {...register("emoji", {
-                  maxLength: 2,
-                })}
-              />
+              <Select borderColor="purple.500" {...register("emoji")}>
+                <option value={null}>Select an emoji</option>
+                {emojis.map(emoji => (
+                  <option value={emoji} key={emoji}>
+                    {emoji}
+                  </option>
+                ))}
+              </Select>
               <FormErrorMessage>{errors.emoji && errors.emoji.message}</FormErrorMessage>
             </FormControl>
             <FormControl isInvalid={errors.birthDate}>
