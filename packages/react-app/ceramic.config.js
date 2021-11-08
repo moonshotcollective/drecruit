@@ -11,7 +11,7 @@ const schemas = require("./schemas");
 const basicProfile = require("@datamodels/identity-profile-basic");
 const cryptoAccounts = require("@datamodels/identity-accounts-crypto");
 const webAccounts = require("@datamodels/identity-accounts-web");
-
+const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
 async function publishModel() {
   let newSeed = process.env.REACT_APP_CERAMIC_SEED;
   if (!process.env.REACT_APP_CERAMIC_SEED) {
@@ -33,11 +33,10 @@ async function publishModel() {
   manager.addJSONModel(cryptoAccounts.model);
   manager.addJSONModel(webAccounts.model);
   for (const [schemaName, schema] of Object.entries(schemas)) {
-    console.log(schemaName, schema);
-    const schemaId = await manager.createSchema(schemaName, schema);
-    await manager.createDefinition("privateProfile", {
-      name: "Private profile",
-      description: "Private encrypted profile",
+    const schemaId = await manager.createSchema(capitalize(schemaName), schema);
+    await manager.createDefinition(schemaName, {
+      name: schemaName,
+      description: `dRecruit ${schemaName} schema`,
       schema: manager.getSchemaURL(schemaId),
     });
   }
