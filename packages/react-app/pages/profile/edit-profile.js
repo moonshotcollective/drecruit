@@ -18,8 +18,7 @@ import { useRouter } from "next/router";
 import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
 import { Web3Context } from "../../helpers/Web3Context";
-
-const emojis = ["🚀", "🙏", "👻", "🤌", "👀"];
+import { emojis } from "../../helpers";
 
 const EditProfilePage = () => {
   const { address, targetNetwork, self } = useContext(Web3Context);
