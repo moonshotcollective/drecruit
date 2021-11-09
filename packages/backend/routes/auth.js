@@ -26,7 +26,7 @@ module.exports = function (fastify, opts, done) {
       }
       const message = `Please sign this message to verify your address: ${await nanoid(10)}`
       await Auth.updateOne(
-        { address: request.params.address },
+        { address: request.params.address.toLowerCase() },
         { message },
         { upsert: true }
       )
@@ -46,7 +46,7 @@ module.exports = function (fastify, opts, done) {
       }
       console.log({ addr: request.params.address })
       const result = await Auth.findOne({
-        address: request.params.address
+        address: request.params.address.toLowerCase()
       }).lean()
 
       console.log({ result })
@@ -58,8 +58,8 @@ module.exports = function (fastify, opts, done) {
         result.message,
         request.body.signature
       )
-      if (decodedAddress.toLowerCase() === request.params.address) {
-        request.session.set('address', decodedAddress)
+      if (decodedAddress.toLowerCase() === result.address) {
+        request.session.set('address', decodedAddress.toLowerCase())
         reply.code(200)
         return {}
       } else {
