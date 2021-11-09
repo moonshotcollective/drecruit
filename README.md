@@ -14,7 +14,8 @@ Prerequisites: [Node](https://nodejs.org/en/download/) plus [Yarn](https://class
   cd packages/react-app
 ```
 
-**Copy-paste all .env.example files into a new file called `.env`.**
+1. **Copy-paste all .env.example files into a new file called `.env`.**
+2. **Go to https://web3.storage and set the value of WEB3STORAGE_TOKEN with your web3.storage API key.**
 
 > clone/fork 🏗 drecruit:
 

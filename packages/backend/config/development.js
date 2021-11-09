@@ -1,4 +1,4 @@
-require("dotenv").config();
+require('dotenv').config()
 
 module.exports = {
   API_CONFIG: {
@@ -8,15 +8,15 @@ module.exports = {
           const validPatternRegexes = [
             /^(.*)drecruit-web-staging.herokuapp.com(\/(.*)|)$/,
             /^(www.|)drecruit-web-staging.herokuapp.com(\/(.*)|)$/,
-            /^http:\/\/localhost:[0-9]{4}$/,
-          ];
+            /^http:\/\/localhost:[0-9]{4}$/
+          ]
           if (validPatternRegexes.some((rx) => rx.test(origin)) || !origin) {
-            callback(null, true);
+            callback(null, true)
           } else {
-            callback(new Error("Not allowed by CORS"));
+            callback(new Error('Not allowed by CORS'))
           }
-        },
-      },
-    },
-  },
-};
+        }
+      }
+    }
+  }
+}

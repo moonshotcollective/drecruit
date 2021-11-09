@@ -1,4 +1,4 @@
-require("dotenv").config();
+require('dotenv').config()
 
 module.exports = {
   API_CONFIG: {
@@ -6,10 +6,10 @@ module.exports = {
       sessionOptions: {
         cookie: {
           secure: true,
-          sameSite: "None",
-          domain: "drecruit-web-staging.herokuapp.com",
-        },
-      },
-    },
-  },
-};
+          sameSite: 'None',
+          domain: 'drecruit-web-staging.herokuapp.com'
+        }
+      }
+    }
+  }
+}

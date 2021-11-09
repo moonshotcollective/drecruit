@@ -15,7 +15,7 @@ const selfIdCore = new Core({
 })
 
 const getDidFromTokenURI = (tokenURI) => {
-  const [ipfsWithColon, _, cid, didFilename] = tokenURI.split('/')
+  const [,, cid, didFilename] = tokenURI.split('/')
   const [did] = didFilename.split('.json')
   return {
     did,

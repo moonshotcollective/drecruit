@@ -1,3 +1,9 @@
+### Picking issues
+
+[ISSUES](https://github.com/moonshotcollective/drecruit/issues)
+
+If you start working on an issue please assign it to yourself.
+
 ### Redeploying the contracts on Mumbai
 
 ```bash
