@@ -19,6 +19,7 @@ import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
 import { Web3Context } from "../../helpers/Web3Context";
 import { emojis } from "../../helpers";
+import { COUNTRIES } from "../../helpers/countries";
 
 const EditProfilePage = () => {
   const { address, targetNetwork, self } = useContext(Web3Context);
@@ -242,14 +243,18 @@ const EditProfilePage = () => {
               <FormErrorMessage>{errors.homeLocation && errors.homeLocation.message}</FormErrorMessage>
             </FormControl>
             <FormControl isInvalid={errors.residenceCountry}>
-              <FormLabel htmlFor="residenceCountry">Country Code</FormLabel>
-              <Input
-                placeholder="UK"
+              <FormLabel htmlFor="residenceCountry">Country</FormLabel>
+              <Select
+                placeholder="Select your country of residence"
                 borderColor="purple.500"
-                {...register("residenceCountry", {
-                  maxLength: 2,
-                })}
-              />
+                {...register("residenceCountry")}
+              >
+                {COUNTRIES.map(({ name, iso2 }) => (
+                  <option value={iso2} key={iso2}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
               <FormErrorMessage>{errors.residenceCountry && errors.residenceCountry.message}</FormErrorMessage>
             </FormControl>
             <Button mt={4} colorScheme="purple" isLoading={isSubmitting} type="submit">

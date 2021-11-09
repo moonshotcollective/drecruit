@@ -17,6 +17,17 @@ const PrivateProfileSchema = {
     },
   },
 };
+
+const TagsSchema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
+  title: "TagsList",
+  type: "array",
+  items: {
+    type: "string",
+    title: "TagItem",
+  },
+};
 module.exports = {
   privateProfile: PrivateProfileSchema,
+  tags: TagsSchema,
 };
