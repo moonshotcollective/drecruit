@@ -1,5 +1,5 @@
 const { Auth } = require('./auth')
 const { Info } = require('./info')
-const { Resume } = require('./resume')
+const { Profile } = require('./profile')
 
-module.exports = { Auth, Info, Resume }
+module.exports = { Auth, Info, Profile }
