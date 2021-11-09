@@ -20,7 +20,7 @@ import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from ".
 import { Web3Context } from "../../helpers/Web3Context";
 import { COUNTRIES } from "../../helpers/countries";
 
-const emojis = ["🚀", "🙏", "👻", "🤌", "👀"];
+import { emojis } from "../../helpers";
 
 const EditProfilePage = () => {
   const { address, targetNetwork, self } = useContext(Web3Context);
