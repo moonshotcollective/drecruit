@@ -4,6 +4,7 @@ module.exports = {
   API_CONFIG: {
     api: {
       corsOptions: {
+        credentials: true,
         origin: function (origin, callback) {
           const validPatternRegexes = [
             /^(.*)drecruit-web-staging.herokuapp.com(\/(.*)|)$/,
