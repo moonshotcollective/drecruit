@@ -100,8 +100,12 @@ function Home() {
           // filtering developers without contact infos
           .filter(({ privateProfile }) => !!privateProfile)
           .map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
-            const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
-            const formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+            const formattedAvatar = basicProfile.image
+              ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
+              : null;
+            const formattedBg = basicProfile.background
+              ? "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1]
+              : null;
             return (
               <MediaCard
                 key={did}
