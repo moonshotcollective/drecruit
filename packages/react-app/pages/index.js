@@ -79,8 +79,12 @@ function Home() {
       <HomeActions contract={dRecruitContract} mySelf={context.self} />
       <SimpleGrid columns={4} spacing={10}>
         {developerProfiles.map(({ did, basicProfile, webAccounts, privateProfile }) => {
-          const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
-          const formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+          let formattedAvatar = null;
+          let formattedBg = null;
+          if (basicProfile.image) {
+            formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
+            formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+          }
           return (
             <MediaCard
               key={did}
