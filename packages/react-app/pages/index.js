@@ -54,7 +54,7 @@ function Home() {
       const lastTokenId = await contract.getLastTokenId();
       const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
       const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
-      console.log(tokenURIs);
+      // console.log(tokenURIs);
       const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
       const core = ceramicCoreFactory();
       const devProfiles = await Promise.all(
@@ -79,8 +79,14 @@ function Home() {
       <HomeActions contract={dRecruitContract} mySelf={context.self} />
       <SimpleGrid columns={4} spacing={10}>
         {developerProfiles.map(({ did, basicProfile, webAccounts, privateProfile }) => {
-          const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
-          const formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+          console.log(basicProfile);
+          let formattedAvatar = null;
+          let formattedBg = null;
+          if (basicProfile.image) {
+            formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
+            formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+          }
+
           return (
             <MediaCard
               key={did}
