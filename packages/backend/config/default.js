@@ -38,7 +38,6 @@ module.exports = {
         cookie: {
           // options for setCookie, see https://github.com/fastify/fastify-cookie
           httpOnly: true,
-          sameSite: 'Lax',
           path: '/',
           maxAge: 144 * 60 * 60 * 1000 // 6 days
         }
