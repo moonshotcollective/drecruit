@@ -12,6 +12,7 @@ import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
 import { getNetwork, loadDRecruitV1Contract } from "../../helpers";
 import axios from "axios";
+import { useRouter } from "next/router";
 
 const EditPrivateProfilePage = () => {
   const router = useRouter();
