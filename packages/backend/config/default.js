@@ -12,7 +12,8 @@ module.exports = {
       didKey: process.env.DID_KEY,
       environment: process.env.NODE_ENV,
       hostname: `${process.env.HOST}:${process.env.PORT}`,
-      port: process.env.PORT,
+      host: process.env.HOST || 'localhost',
+      port: process.env.PORT || 5000,
       protocol: defer(function () {
         return `http${
           this.API_CONFIG.api.environment === 'development' ? '' : 's'
@@ -38,7 +39,6 @@ module.exports = {
         cookie: {
           // options for setCookie, see https://github.com/fastify/fastify-cookie
           httpOnly: true,
-          sameSite: 'Lax',
           path: '/',
           maxAge: 144 * 60 * 60 * 1000 // 6 days
         }
