@@ -65,3 +65,13 @@ yarn dev
 # 📚 Documentation
 
 Documentation, tutorials, challenges, and many more resources, visit: [docs.scaffoldeth.io](https://docs.scaffoldeth.io)
+
+
+1. fork
+2. git clone 
+3. cd eg. website
+4. git status
+5. git add
+6. git commit 
+7. git push
+8. create pull request
