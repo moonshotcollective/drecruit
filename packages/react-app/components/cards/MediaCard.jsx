@@ -52,7 +52,7 @@ function MediaCard({
           withCredentials: true,
         });
         console.log({ response });
-        if (response.data.statusCode !== 200) {
+        if (response.status !== 200) {
           return setCanView(false);
         }
         setCanView(true);
