@@ -362,10 +362,10 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     console.log("curr self", mySelf.id);
     setSelf(mySelf);
 
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${address}`);
-    const signature = await provider.provider.send("personal_sign", [data.message, address]);
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${account}`);
+    const signature = await provider.provider.send("personal_sign", [data.message, account]);
     const verifyResponse = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/verify/${address}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/verify/${account}`,
       {
         signature: signature.result,
       },

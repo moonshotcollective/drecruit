@@ -1,5 +1,5 @@
 {
-  "name": "drecruit-backend",
+  "name": "@scaffold-eth/backend",
   "version": "0.1.0",
   "description": "",
   "main": "server.js",

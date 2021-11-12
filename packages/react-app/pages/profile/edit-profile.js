@@ -40,42 +40,33 @@ const EditProfilePage = () => {
   useEffect(() => {
     // fetch from Ceramic
     (async () => {
-      if (address) {
-        const core = ceramicCoreFactory();
-        let userDID;
-        try {
-          userDID = await core.getAccountDID(`${address}@eip155:${targetNetwork.chainId}`);
-        } catch (error) {
-          userDID = self.id;
-        }
-        if (userDID) {
-          const result = await core.get("basicProfile", userDID);
-          console.log({ result });
-          if (!result) return;
-          Object.entries(result).forEach(([key, value]) => {
-            console.log({ key, value });
-            if (["image", "background"].includes(key)) {
-              const {
-                original: { src: url },
-              } = value;
-              const match = url.match(/^ipfs:\/\/(.+)$/);
-              if (match) {
-                const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
-                if (key === "image") {
-                  setImageURL(ipfsUrl);
-                }
-                if (key === "background") {
-                  setBackgroundURL(ipfsUrl);
-                }
+      if (address && self) {
+        const result = await self.get("basicProfile");
+        console.log({ result });
+        if (!result) return;
+        Object.entries(result).forEach(([key, value]) => {
+          console.log({ key, value });
+          if (["image", "background"].includes(key)) {
+            const {
+              original: { src: url },
+            } = value;
+            const match = url.match(/^ipfs:\/\/(.+)$/);
+            if (match) {
+              const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
+              if (key === "image") {
+                setImageURL(ipfsUrl);
               }
-            } else {
-              setValue(key, value);
+              if (key === "background") {
+                setBackgroundURL(ipfsUrl);
+              }
             }
-          });
-        }
+          } else {
+            setValue(key, value);
+          }
+        });
       }
     })();
-  }, [address]);
+  }, [address, self]);
 
   const onFileChange = useCallback(event => {
     const input = event.target;

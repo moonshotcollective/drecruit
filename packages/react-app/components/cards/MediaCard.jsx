@@ -64,12 +64,10 @@ function MediaCard({
   }, [privateProfile]);
 
   const handleRequestPrivateProfileUnlock = async () => {
-    console.log(privateProfile);
     const tx = await dRecruitContract.request(privateProfile.tokenId, {
       value: ethers.utils.parseEther("0.1"),
     });
     const receipt = await tx.wait();
-    console.log({ receipt });
     const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
       withCredentials: true,
     });
@@ -109,13 +107,13 @@ function MediaCard({
           <Text color={"gray.500"}>{date}</Text>
         </Stack>
         {publicProfile.skillTags && (
-          <SimpleGrid columns={4} spacing={4}>
+          <HStack spacing={4}>
             {publicProfile.skillTags.map(skill => (
-              <Tag size="sm" key={skill} colorScheme="cyan">
+              <Tag size="md" key={skill} colorScheme="cyan">
                 <TagLabel>{skill}</TagLabel>
               </Tag>
             ))}
-          </SimpleGrid>
+          </HStack>
         )}
         {hasWebAccount && (
           <Stack direction={"row"} justify={"center"} spacing={6}>

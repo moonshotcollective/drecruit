@@ -95,8 +95,7 @@ const EditPublicProfilePage = () => {
       experiences,
     });
     const me = await self.client.dataStore.get("publicProfile");
-    console.log({ me });
-    // return router.push("/");
+    return router.push("/");
   };
   return (
     <Box margin="0 auto" maxWidth={1100} transition="0.5s ease-out">
