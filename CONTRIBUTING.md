@@ -4,6 +4,14 @@
 
 If you start working on an issue please assign it to yourself.
 
+### Publishing new Ceramic schemas
+
+Edit the data model in packages/react-app/schemas and then run the following command to generate a new model.json with the updated definitions
+
+```bash
+yarn ceramic
+```
+
 ### Redeploying the contracts on Mumbai
 
 ```bash

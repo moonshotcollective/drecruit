@@ -18,16 +18,29 @@ const PrivateProfileSchema = {
   },
 };
 
-const TagsSchema = {
+const PublicProfileSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",
-  title: "TagsList",
-  type: "array",
-  items: {
-    type: "string",
-    title: "TagItem",
+  title: "PublicProfile",
+  type: "object",
+  properties: {
+    skillTags: {
+      title: "SkillTagsList",
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
+    experiences: {
+      title: "ExperienceList",
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
   },
 };
+
 module.exports = {
   privateProfile: PrivateProfileSchema,
-  tags: TagsSchema,
+  publicProfile: PublicProfileSchema,
 };
