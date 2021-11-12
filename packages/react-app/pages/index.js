@@ -54,8 +54,11 @@ function Home() {
       const lastTokenId = await contract.getLastTokenId();
       const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
       const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
-      console.log(tokenURIs);
-      const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
+      // console.log(tokenURIs);
+      let uniqueTokenUris = [...new Set(tokenURIs)];
+      // console.log(uniqueTokenUris);
+      const developersDID = uniqueTokenUris.map(uri => getDidFromTokenURI(uri).did);
+
       const core = ceramicCoreFactory();
       const devProfiles = await Promise.all(
         developersDID.map(async did => ({
@@ -88,7 +91,10 @@ function Home() {
   };
 
   useEffect(() => {
-    init();
+    if (context.address && context.self) {
+      console.log("INIT");
+      init();
+    }
   }, [context]);
 
   return (
@@ -99,7 +105,7 @@ function Home() {
         {developerProfiles
           // filtering developers without contact infos
           .filter(({ privateProfile }) => !!privateProfile)
-          .map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
+          .map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }, idx) => {
             const formattedAvatar = basicProfile.image
               ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
               : null;
@@ -108,7 +114,7 @@ function Home() {
               : null;
             return (
               <MediaCard
-                key={did}
+                key={idx}
                 avatarSrc={formattedAvatar}
                 coverSrc={formattedBg}
                 publicProfile={publicProfile}
