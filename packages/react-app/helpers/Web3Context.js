@@ -350,11 +350,11 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   const loadWeb3Modal = useCallback(async () => {
     const connection = await web3Modal.connect();
     const provider = new ethers.providers.Web3Provider(connection);
-    // const signer = provider.getSigner();
-    const address = provider.provider.selectedAddress;
+    const signer = provider.getSigner();
+    const account = await signer.getAddress();
     setInjectedProvider(provider);
     const mySelf = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(provider.provider, provider.provider.selectedAddress),
+      authProvider: new EthereumAuthProvider(provider.provider, account),
       ceramic: CERAMIC_TESTNET,
       connectNetwork: CERAMIC_TESTNET,
       model: modelAliases,

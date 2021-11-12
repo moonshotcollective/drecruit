@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Core } from "@self.id/core";
 import axios from "axios";
-import { Code } from "@chakra-ui/react";
-import { Box, Heading, SimpleGrid, VStack } from "@chakra-ui/layout";
+import { Code, HStack, InputGroup, InputLeftElement, Box, Heading, SimpleGrid, VStack } from "@chakra-ui/react";
 import { Web3Context } from "../helpers/Web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ModelManager } from "@glazed/devtools";
@@ -36,6 +35,7 @@ import { getDidFromTokenURI, loadDRecruitV1Contract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
+import { FiSearch } from "react-icons/fi";
 
 function Home() {
   const context = useContext(Web3Context);
@@ -63,11 +63,28 @@ function Home() {
           basicProfile: await core.get("basicProfile", did),
           cryptoAccounts: await core.get("cryptoAccounts", did),
           webAccounts: await core.get("alsoKnownAs", did),
+          publicProfile: await core.get("publicProfile", did),
           privateProfile: await core.get("privateProfile", did),
         })),
       );
       setDeveloperProfiles(devProfiles);
     }
+  };
+
+  const handleSearch = async e => {
+    const { value } = e.target;
+    const foundDevs = developerProfiles.filter(({ publicProfile }) => {
+      if (publicProfile) {
+        const skills = publicProfile.skillTags.map(s => s.toLowerCase());
+        const isMatch = skills.some(s => s.startsWith(value.toLowerCase())); // skills.includes(value);
+        return isMatch;
+      }
+      return false;
+    });
+    if (!foundDevs || foundDevs.length === 0) {
+      return init();
+    }
+    setDeveloperProfiles(foundDevs);
   };
 
   useEffect(() => {
@@ -77,27 +94,32 @@ function Home() {
   return (
     <Layout>
       <HomeActions contract={dRecruitContract} mySelf={context.self} />
+      <Input type="search" placeholder="Search" onChange={handleSearch} />
       <SimpleGrid columns={4} spacing={10}>
-        {developerProfiles.map(({ did, basicProfile, webAccounts, privateProfile }) => {
-          const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
-          const formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
-          return (
-            <MediaCard
-              key={did}
-              avatarSrc={formattedAvatar}
-              coverSrc={formattedBg}
-              heading={basicProfile.emoji + basicProfile.name}
-              subheading={`Location: ${basicProfile.residenceCountry}, ${basicProfile.homeLocation}`}
-              description={basicProfile.description}
-              date={`Birthdate: ${basicProfile.birthDate}`}
-              primaryAction="Unlock contact informations"
-              secondaryAction="View contact informations"
-              dRecruitContract={dRecruitContract}
-              hasWebAccount={!!webAccounts}
-              privateProfile={privateProfile}
-            />
-          );
-        })}
+        {developerProfiles
+          // filtering developers without contact infos
+          .filter(({ privateProfile }) => !!privateProfile)
+          .map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
+            const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
+            const formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+            return (
+              <MediaCard
+                key={did}
+                avatarSrc={formattedAvatar}
+                coverSrc={formattedBg}
+                publicProfile={publicProfile}
+                heading={basicProfile.emoji + basicProfile.name}
+                subheading={`Location: ${basicProfile.residenceCountry}, ${basicProfile.homeLocation}`}
+                description={basicProfile.description}
+                date={`Birthdate: ${basicProfile.birthDate}`}
+                primaryAction="Unlock contact informations"
+                secondaryAction="View contact informations"
+                dRecruitContract={dRecruitContract}
+                hasWebAccount={!!webAccounts}
+                privateProfile={privateProfile}
+              />
+            );
+          })}
       </SimpleGrid>
     </Layout>
   );

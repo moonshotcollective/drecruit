@@ -12,6 +12,9 @@ import {
   PopoverArrow,
   PopoverCloseButton,
   PopoverHeader,
+  Tag,
+  TagLabel,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { Icon, EmailIcon, InfoIcon, PhoneIcon } from "@chakra-ui/icons";
 import { BsFillPersonLinesFill } from "react-icons/bs";
@@ -27,6 +30,7 @@ function MediaCard({
   description,
   heading,
   subheading,
+  publicProfile,
   date,
   twitter,
   hasWebAccount,
@@ -104,6 +108,15 @@ function MediaCard({
           <Text color={"gray.500"}>{subheading}</Text>
           <Text color={"gray.500"}>{date}</Text>
         </Stack>
+        {publicProfile.skillTags && (
+          <SimpleGrid columns={4} spacing={4}>
+            {publicProfile.skillTags.map(skill => (
+              <Tag size="sm" key={skill} colorScheme="cyan">
+                <TagLabel>{skill}</TagLabel>
+              </Tag>
+            ))}
+          </SimpleGrid>
+        )}
         {hasWebAccount && (
           <Stack direction={"row"} justify={"center"} spacing={6}>
             <Stack spacing={0} align={"center"}>
@@ -120,7 +133,7 @@ function MediaCard({
             </Stack>
           </Stack>
         )}
-        {decryptedData ? (
+        {decryptedData && (
           <Box maxW="full" p="6">
             <Stack spacing={0} align="left" mb={5}>
               <HStack align="center">
@@ -145,10 +158,6 @@ function MediaCard({
               </HStack>
             </Stack>
           </Box>
-        ) : (
-          <Text p="5" backgroundColor="gray.100" color="gray.900">
-            {JSON.parse(privateProfile.encrypted).ciphertext}
-          </Text>
         )}
         <Button
           disabled={canView}
