@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const config = require('config')
 const { makeCeramicClient } = require('./helpers/ceramic')
 
-const { corsOptions, sessionOptions, dbUrl, port } = config.get('API_CONFIG.api')
+const { corsOptions, sessionOptions, dbUrl, host, port } = config.get('API_CONFIG.api')
 
 fastify.register(require('fastify-cors'), {
   ...corsOptions
@@ -26,7 +26,7 @@ const start = async () => {
     fastify.log.info('DB connected')
     const client = await makeCeramicClient()
     fastify.decorate('ceramic', { client })
-    await fastify.listen(port || 5000)
+    await fastify.listen(port, host)
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)

@@ -36,16 +36,48 @@ import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
 import { FiSearch } from "react-icons/fi";
+import { useDebounce } from "../hooks";
 
 function Home() {
   const context = useContext(Web3Context);
   const [inputEmail, setInputEmail] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [developerProfiles, setDeveloperProfiles] = useState([]);
+  // State and setters for ...
+  // Search term
+  const [searchTerm, setSearchTerm] = useState("");
+  // API search results
+  const [results, setResults] = useState([]);
+  // Searching status (whether there is pending API request)
+  const [isMatch, setIsMatch] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  // Debounce search term so that it only gives us latest value ...
+  // ... if searchTerm has not been updated within last 500ms.
+  // The goal is to only have the API call fire when user stops typing ...
+  // ... so that we aren't hitting our API rapidly.
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [dRecruitContract, setDRecruitContract] = useState();
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
+  // Effect for API call
+  useEffect(
+    () => {
+      if (debouncedSearchTerm) {
+        setIsSearching(true);
+        handleSearch(debouncedSearchTerm).then(devs => {
+          setIsSearching(false);
+          setIsMatch(true);
+          setResults(devs);
+        });
+      } else {
+        setResults([]);
+        setIsMatch(false);
+        setIsSearching(false);
+      }
+    },
+    [debouncedSearchTerm], // Only call effect if debounced search term changes
+  );
   const init = async () => {
     if (context.injectedProvider && context.injectedProvider.getSigner()) {
       const signer = context.injectedProvider.getSigner();
@@ -71,38 +103,79 @@ function Home() {
     }
   };
 
-  const handleSearch = async e => {
-    const { value } = e.target;
+  const handleSearch = async value => {
     const foundDevs = developerProfiles.filter(({ publicProfile }) => {
       if (publicProfile) {
         const skills = publicProfile.skillTags.map(s => s.toLowerCase());
-        const isMatch = skills.some(s => s.startsWith(value.toLowerCase())); // skills.includes(value);
+        console.log({ skills });
+        const isMatch = skills.some(s => s.startsWith(value)); // skills.includes(value);
+        console.log({ isMatch });
         return isMatch;
       }
       return false;
     });
+    console.log({ foundDevs });
     if (!foundDevs || foundDevs.length === 0) {
-      return init();
+      return null;
     }
-    setDeveloperProfiles(foundDevs);
+
+    return foundDevs;
   };
 
   useEffect(() => {
     init();
-  }, [context]);
+  }, [context.injectedProvider]);
 
   return (
     <Layout>
       <HomeActions contract={dRecruitContract} mySelf={context.self} />
-      <Input type="search" placeholder="Search" onChange={handleSearch} />
+      <Input type="search" placeholder="Search" onChange={e => setSearchTerm(e.target.value)} />
+      {isSearching && <div>Searching ...</div>}
+      <Heading>Found developers:</Heading>
       <SimpleGrid columns={4} spacing={10}>
-        {developerProfiles
-          // filtering developers without contact infos
-          .filter(({ privateProfile }) => !!privateProfile)
-          .map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
-            const formattedAvatar = "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1];
-            const formattedBg = "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1];
+        {isMatch &&
+          results &&
+          results.map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
+            const formattedAvatar = basicProfile.image
+              ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
+              : null;
+            const formattedBg = basicProfile.background
+              ? "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1]
+              : null;
             return (
+              publicProfile &&
+              privateProfile && (
+                <MediaCard
+                  key={did}
+                  avatarSrc={formattedAvatar}
+                  coverSrc={formattedBg}
+                  publicProfile={publicProfile}
+                  heading={basicProfile.emoji + basicProfile.name}
+                  subheading={`Location: ${basicProfile.residenceCountry}, ${basicProfile.homeLocation}`}
+                  description={basicProfile.description}
+                  date={`Birthdate: ${basicProfile.birthDate}`}
+                  primaryAction="Unlock contact informations"
+                  secondaryAction="View contact informations"
+                  dRecruitContract={dRecruitContract}
+                  hasWebAccount={!!webAccounts}
+                  privateProfile={privateProfile}
+                />
+              )
+            );
+          })}
+      </SimpleGrid>
+      <Heading>All developers:</Heading>
+      <SimpleGrid columns={4} spacing={10}>
+        {developerProfiles.map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
+          const formattedAvatar = basicProfile.image
+            ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
+            : null;
+          const formattedBg = basicProfile.background
+            ? "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1]
+            : null;
+          return (
+            publicProfile &&
+            privateProfile && (
               <MediaCard
                 key={did}
                 avatarSrc={formattedAvatar}
@@ -118,8 +191,9 @@ function Home() {
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
               />
-            );
-          })}
+            )
+          );
+        })}
       </SimpleGrid>
     </Layout>
   );

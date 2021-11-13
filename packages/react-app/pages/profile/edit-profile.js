@@ -1,4 +1,14 @@
-import { Button, FormControl, FormErrorMessage, FormLabel, Input, Stack, Image, Textarea } from "@chakra-ui/react";
+import {
+  Button,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Input,
+  Stack,
+  Image,
+  Textarea,
+  Select,
+} from "@chakra-ui/react";
 import { Box } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -8,6 +18,9 @@ import { useRouter } from "next/router";
 import modelAliases from "../../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
 import { Web3Context } from "../../helpers/Web3Context";
+import { COUNTRIES } from "../../helpers/countries";
+
+import { emojis } from "../../helpers";
 
 const EditProfilePage = () => {
   const { address, targetNetwork, self } = useContext(Web3Context);
@@ -27,42 +40,33 @@ const EditProfilePage = () => {
   useEffect(() => {
     // fetch from Ceramic
     (async () => {
-      if (address) {
-        const core = ceramicCoreFactory();
-        let userDID;
-        try {
-          userDID = await core.getAccountDID(`${address}@eip155:${targetNetwork.chainId}`);
-        } catch (error) {
-          userDID = self.id;
-        }
-        if (userDID) {
-          const result = await core.get("basicProfile", userDID);
-          console.log({ result });
-          if (!result) return;
-          Object.entries(result).forEach(([key, value]) => {
-            console.log({ key, value });
-            if (["image", "background"].includes(key)) {
-              const {
-                original: { src: url },
-              } = value;
-              const match = url.match(/^ipfs:\/\/(.+)$/);
-              if (match) {
-                const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
-                if (key === "image") {
-                  setImageURL(ipfsUrl);
-                }
-                if (key === "background") {
-                  setBackgroundURL(ipfsUrl);
-                }
+      if (address && self) {
+        const result = await self.get("basicProfile");
+        console.log({ result });
+        if (!result) return;
+        Object.entries(result).forEach(([key, value]) => {
+          console.log({ key, value });
+          if (["image", "background"].includes(key)) {
+            const {
+              original: { src: url },
+            } = value;
+            const match = url.match(/^ipfs:\/\/(.+)$/);
+            if (match) {
+              const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
+              if (key === "image") {
+                setImageURL(ipfsUrl);
               }
-            } else {
-              setValue(key, value);
+              if (key === "background") {
+                setBackgroundURL(ipfsUrl);
+              }
             }
-          });
-        }
+          } else {
+            setValue(key, value);
+          }
+        });
       }
     })();
-  }, [address]);
+  }, [address, self]);
 
   const onFileChange = useCallback(event => {
     const input = event.target;
@@ -193,13 +197,14 @@ const EditProfilePage = () => {
             </FormControl>
             <FormControl isInvalid={errors.emoji}>
               <FormLabel htmlFor="emoji">Emoji</FormLabel>
-              <Input
-                placeholder="🚀"
-                borderColor="purple.500"
-                {...register("emoji", {
-                  maxLength: 2,
-                })}
-              />
+              <Select borderColor="purple.500" {...register("emoji")}>
+                <option value={null}>Select an emoji</option>
+                {emojis.map(emoji => (
+                  <option value={emoji} key={emoji}>
+                    {emoji}
+                  </option>
+                ))}
+              </Select>
               <FormErrorMessage>{errors.emoji && errors.emoji.message}</FormErrorMessage>
             </FormControl>
             <FormControl isInvalid={errors.birthDate}>
@@ -230,14 +235,18 @@ const EditProfilePage = () => {
               <FormErrorMessage>{errors.homeLocation && errors.homeLocation.message}</FormErrorMessage>
             </FormControl>
             <FormControl isInvalid={errors.residenceCountry}>
-              <FormLabel htmlFor="residenceCountry">Country Code</FormLabel>
-              <Input
-                placeholder="UK"
+              <FormLabel htmlFor="residenceCountry">Country</FormLabel>
+              <Select
+                placeholder="Select your country of residence"
                 borderColor="purple.500"
-                {...register("residenceCountry", {
-                  maxLength: 2,
-                })}
-              />
+                {...register("residenceCountry")}
+              >
+                {COUNTRIES.map(({ name, iso2 }) => (
+                  <option value={iso2} key={iso2}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
               <FormErrorMessage>{errors.residenceCountry && errors.residenceCountry.message}</FormErrorMessage>
             </FormControl>
             <Button mt={4} colorScheme="purple" isLoading={isSubmitting} type="submit">

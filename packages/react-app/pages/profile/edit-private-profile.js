@@ -12,8 +12,10 @@ import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
 import { getNetwork, loadDRecruitV1Contract } from "../../helpers";
 import axios from "axios";
+import { useRouter } from "next/router";
 
 const EditPrivateProfilePage = () => {
+  const router = useRouter();
   const { address, targetNetwork, injectedProvider, self } = useContext(Web3Context);
   const [imageURL, setImageURL] = useState();
   const image = useRef(null);
@@ -32,37 +34,27 @@ const EditPrivateProfilePage = () => {
     // fetch from Ceramic
     (async () => {
       if (address && self) {
-        const core = ceramicCoreFactory();
-        let userDID;
-        try {
-          userDID = await core.getAccountDID(`${address}@eip155:${targetNetwork.chainId}`);
-        } catch (error) {
-          console.log(error);
-          userDID = self.id;
-        }
-        if (userDID) {
-          const result = await core.get("privateProfile", userDID);
-          if (result) {
-            const decrypted = await self.client.ceramic.did?.decryptDagJWE(JSON.parse(result.encrypted));
-            if (decrypted) {
-              Object.entries(decrypted).forEach(([key, value]) => {
-                console.log({ key, value });
-                if (["image"].includes(key)) {
-                  const {
-                    original: { src: url },
-                  } = value;
-                  const match = url.match(/^ipfs:\/\/(.+)$/);
-                  if (match) {
-                    const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
-                    if (key === "image") {
-                      setImageURL(ipfsUrl);
-                    }
+        const result = await self.get("privateProfile");
+        if (result) {
+          const decrypted = await self.client.ceramic.did?.decryptDagJWE(JSON.parse(result.encrypted));
+          if (decrypted) {
+            Object.entries(decrypted).forEach(([key, value]) => {
+              console.log({ key, value });
+              if (["image"].includes(key)) {
+                const {
+                  original: { src: url },
+                } = value;
+                const match = url.match(/^ipfs:\/\/(.+)$/);
+                if (match) {
+                  const ipfsUrl = `//ipfs.io/ipfs/${match[1]}`;
+                  if (key === "image") {
+                    setImageURL(ipfsUrl);
                   }
-                } else {
-                  setValue(key, value);
                 }
-              });
-            }
+              } else {
+                setValue(key, value);
+              }
+            });
           }
         }
       }
@@ -111,11 +103,12 @@ const EditPrivateProfilePage = () => {
       const receipt = await tx.wait();
       console.log({ receipt });
       const tokenId = receipt.events[0].args.id.toString();
-      return self.client.dataStore.set("privateProfile", {
+      await self.client.dataStore.set("privateProfile", {
         tokenURI: developerTokenURI,
         tokenId: parseInt(tokenId, 10),
         encrypted: JSON.stringify(encryptedData),
       });
+      return router.push("/profile/edit-public-profile");
     } catch (error) {
       console.log(error);
       return error;
