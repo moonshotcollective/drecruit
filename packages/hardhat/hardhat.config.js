@@ -95,7 +95,7 @@ module.exports = {
       //    url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/eth/rinkeby", // <---- YOUR MORALIS ID! (not limited to infura)
 
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
     kovan: {
       url: "https://kovan.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
@@ -269,20 +269,11 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.9",
+        version: "0.8.10",
         settings: {
           optimizer: {
             enabled: true,
             runs: 9999,
-          },
-        },
-      },
-      {
-        version: "0.6.7",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
           },
         },
       },

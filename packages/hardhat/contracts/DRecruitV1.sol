@@ -31,7 +31,7 @@
         / /___/ /_/ / /___/ /___/ /___/ /___  / / _/ /  | |/ / /___
         \____/\____/_____/_____/_____/\____/ /_/ /___/  |___/_____/
 */
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
@@ -53,6 +53,7 @@ contract DRecruitV1 is
     struct Resume {
         address submitter;
         uint256 fees;
+        string uri;
     }
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -61,9 +62,9 @@ contract DRecruitV1 is
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public fee; // payable in wei units of ether
     uint256 public accumulatedFees;
-    mapping(uint256 => Resume) public balances;
+    mapping(uint256 => Resume) public resumes;
     mapping(uint256 => mapping(address => uint256)) public requests; // tokenId -> (staker -> amount)
-    mapping(uint256 => string) public tokenUris;
+
     Counters.Counter public tokenId;
 
     mapping(uint256 => EnumerableSet.AddressSet) private requesters;
@@ -82,7 +83,8 @@ contract DRecruitV1 is
     constructor() {}
 
     function uri(uint256 id) public view override returns (string memory) {
-        return tokenUris[id];
+        Resume memory resume = resumes[id];
+        return resume.uri;
     }
 
     function getRequesters(uint256 id)
@@ -120,17 +122,12 @@ contract DRecruitV1 is
         _unpause();
     }
 
-    function getLastTokenId() public view returns (uint256) {
-        return tokenId.current();
-    }
-
-    function mint(string memory _tokenUri, bytes memory data) external {
-        balances[tokenId.current()] = Resume(msg.sender, 0);
-        tokenUris[tokenId.current()] = _tokenUri;
+    function mint(string memory tokenUri, bytes memory data) external {
+        resumes[tokenId.current()] = Resume(msg.sender, 0, tokenUri);
         tokenId.increment();
         _mint(msg.sender, tokenId.current() - 1, 1, data);
         emit NewResume(msg.sender, tokenId.current() - 1);
-        emit URI(_tokenUri, tokenId.current() - 1);
+        emit URI(tokenUri, tokenId.current() - 1);
     }
 
     function request(uint256 id) external payable {
@@ -143,7 +140,7 @@ contract DRecruitV1 is
     }
 
     function approveRequest(uint256 id, address account) external {
-        Resume memory _resume = balances[id];
+        Resume memory _resume = resumes[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         require(requests[id][account] != 0, "NOT_REQUESTED");
         uint256 resumeFee = (80 * requests[id][account]) / 100;
@@ -157,7 +154,7 @@ contract DRecruitV1 is
     }
 
     function approveRequests(uint256 id, address[] calldata accounts) external {
-        Resume memory _resume = balances[id];
+        Resume memory _resume = resumes[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         for (uint256 i = 0; i < accounts.length; i++) {
             if (requests[id][accounts[i]] == 0) {
@@ -175,7 +172,7 @@ contract DRecruitV1 is
     }
 
     function rejectRequest(uint256 id, address account) external {
-        Resume memory _resume = balances[id];
+        Resume memory _resume = resumes[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         require(requests[id][account] != 0, "NOT_REQUESTED");
         // solhint-disable-next-line avoid-low-level-calls
@@ -186,7 +183,7 @@ contract DRecruitV1 is
     }
 
     function rejectRequests(uint256 id, address[] calldata accounts) external {
-        Resume memory _resume = balances[id];
+        Resume memory _resume = resumes[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         for (uint256 i = 0; i < accounts.length; i++) {
             if (requests[id][accounts[i]] == 0) {
