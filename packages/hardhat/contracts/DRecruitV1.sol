@@ -64,6 +64,7 @@ contract DRecruitV1 is
     uint256 public accumulatedFees;
     mapping(uint256 => Resume) public resumes;
     mapping(uint256 => mapping(address => uint256)) public requests; // tokenId -> (staker -> amount)
+    mapping(address => uint256) public owners; // submitter -> tokenId
 
     Counters.Counter public tokenId;
 
@@ -87,10 +88,7 @@ contract DRecruitV1 is
         return resume.uri;
     }
 
-    function getRequesters(uint256 id)
-        external
-        view
-        returns (address[] memory)
+    function getRequesters(uint256 id) external view returns (address[] memory)
     {
         return requesters[id].values();
     }
@@ -123,6 +121,7 @@ contract DRecruitV1 is
     }
 
     function mint(string memory tokenUri, bytes memory data) external {
+        require(owners[msg.sender] == 0, "TOKEN_EXISTS");
         resumes[tokenId.current()] = Resume(msg.sender, 0, tokenUri);
         tokenId.increment();
         _mint(msg.sender, tokenId.current() - 1, 1, data);
