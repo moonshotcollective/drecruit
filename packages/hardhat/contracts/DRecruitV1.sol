@@ -88,7 +88,10 @@ contract DRecruitV1 is
         return resume.uri;
     }
 
-    function getRequesters(uint256 id) external view returns (address[] memory)
+    function getRequesters(uint256 id)
+        external
+        view
+        returns (address[] memory)
     {
         return requesters[id].values();
     }
