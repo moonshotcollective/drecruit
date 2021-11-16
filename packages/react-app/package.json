@@ -54,7 +54,7 @@
     "fortmatic": "^2.2.1",
     "framer-motion": "^4",
     "fs": "^0.0.1-security",
-    "graphiql": "^1.0.5",
+    "graphiql": "^1.4.7",
     "graphql": "^15.3.0",
     "isomorphic-fetch": "^3.0.0",
     "key-did-provider-ed25519": "^1.1.0",
