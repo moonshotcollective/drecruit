@@ -1,0 +1,30 @@
+name: Contracts CI
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main, staging ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        cache: 'npm'
+    - name: Install packages
+      working-directory: ./packages/hardhat
+      run: npm install
+    - name: Compile contracts
+      working-directory: ./packages/hardhat
+      run: npx hardhat compile --show-stack-traces
+    - name: Run solhint
+      working-directory: ./packages/hardhat
+      run: npx solhint "contracts/**/*.sol"
+    - name: Run prettier
+      working-directory: ./packages/hardhat
+      run: npx prettier --list-different "contracts/**/*.sol"
