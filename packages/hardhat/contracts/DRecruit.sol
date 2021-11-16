@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable
 /**
                                             ..
                                           ,*.
@@ -31,7 +32,7 @@
         / /___/ /_/ / /___/ /___/ /___/ /___  / / _/ /  | |/ / /___
         \____/\____/_____/_____/_____/\____/ /_/ /___/  |___/_____/
 */
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
