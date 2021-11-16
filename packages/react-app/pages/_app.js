@@ -47,6 +47,11 @@ function MyApp({ Component, pageProps }) {
                   <a>Home</a>
                 </Link>
               </Menu.Item>
+              <Menu.Item key="requests">
+                <Link href="/profile/approval">
+                  <a>Requests</a>
+                </Link>
+              </Menu.Item>
               <Menu.Item key="debug">
                 <Link href="/debug">
                   <a>Debug Contracts</a>
