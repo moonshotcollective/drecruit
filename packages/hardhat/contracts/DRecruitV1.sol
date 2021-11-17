@@ -33,6 +33,8 @@
 */
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -55,19 +57,23 @@ contract DRecruitV1 is
         uint256 fees;
         string uri;
     }
+
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeERC20 for IERC20;
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+
+    IERC20 public token;
     uint256 public fee; // payable in wei units of ether
     uint256 public accumulatedFees;
-    mapping(uint256 => Resume) public resumes;
-    mapping(uint256 => mapping(address => uint256)) public requests; // tokenId -> (staker -> amount)
-    mapping(address => uint256) public owners; // submitter -> tokenId
 
     Counters.Counter public tokenId;
 
+    mapping(uint256 => Resume) public resumes;
+    mapping(uint256 => mapping(address => uint256)) public requests; // tokenId -> (staker -> amount)
+    mapping(address => uint256) public owners; // submitter -> tokenId
     mapping(uint256 => EnumerableSet.AddressSet) private requesters;
 
     event NewResume(address indexed submitter, uint256 indexed id);
@@ -96,7 +102,7 @@ contract DRecruitV1 is
         return requesters[id].values();
     }
 
-    function initialize(uint256 _fee) external initializer {
+    function initialize(uint256 _fee, IERC20 _token) external initializer {
         __ERC1155_init("");
         __AccessControl_init();
         __Pausable_init();
@@ -104,6 +110,7 @@ contract DRecruitV1 is
         __UUPSUpgradeable_init();
 
         fee = _fee;
+        token = _token;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(PAUSER_ROLE, msg.sender);
@@ -111,8 +118,7 @@ contract DRecruitV1 is
     }
 
     function withdrawFees() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        // solhint-disable-next-line avoid-low-level-calls
-        address(msg.sender).call{value: accumulatedFees}("");
+        token.safeTransfer(msg.sender, token.balanceOf(address(this)));
     }
 
     function pause() external onlyRole(PAUSER_ROLE) {
@@ -132,13 +138,14 @@ contract DRecruitV1 is
         emit URI(tokenUri, tokenId.current() - 1);
     }
 
-    function request(uint256 id) external payable {
+    function request(uint256 id, uint256 stake) external payable {
         require(id < tokenId.current(), "NOT_MINTED_YET");
-        require(msg.value >= fee, "UNPAID_FEE");
+        require(stake >= fee, "UNPAID_FEE");
         require(requests[id][msg.sender] == 0, "ALREADY_REQUESTED");
-        requests[id][msg.sender] = msg.value;
+        requests[id][msg.sender] = stake;
         requesters[id].add(msg.sender);
-        emit RequestResume(msg.sender, id, msg.value);
+        token.safeTransferFrom(msg.sender, address(this), stake);
+        emit RequestResume(msg.sender, id, stake);
     }
 
     function approveRequest(uint256 id, address account) external {
@@ -146,12 +153,11 @@ contract DRecruitV1 is
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         require(requests[id][account] != 0, "NOT_REQUESTED");
         uint256 resumeFee = (80 * requests[id][account]) / 100;
-        // solhint-disable-next-line avoid-low-level-calls
-        address(msg.sender).call{value: resumeFee}("");
         accumulatedFees += (requests[id][account] - resumeFee);
         requests[id][account] = 0; // save some gas
         requesters[id].remove(account);
         _mint(account, id, 1, "");
+        token.safeTransfer(msg.sender, resumeFee);
         emit ApproveRequest(account, id);
     }
 
@@ -163,12 +169,11 @@ contract DRecruitV1 is
                 continue;
             }
             uint256 resumeFee = (80 * requests[id][accounts[i]]) / 100;
-            // solhint-disable-next-line avoid-low-level-calls
-            address(msg.sender).call{value: resumeFee}("");
             accumulatedFees += (requests[id][accounts[i]] - resumeFee);
             requests[id][accounts[i]] = 0; // save some gas
             requesters[id].remove(accounts[i]);
             _mint(accounts[i], id, 1, "");
+            token.safeTransfer(msg.sender, resumeFee);
             emit ApproveRequest(accounts[i], id);
         }
     }
@@ -177,10 +182,9 @@ contract DRecruitV1 is
         Resume memory _resume = resumes[id];
         require(_resume.submitter == msg.sender, "UNAUTHORIZED");
         require(requests[id][account] != 0, "NOT_REQUESTED");
-        // solhint-disable-next-line avoid-low-level-calls
-        address(account).call{value: requests[id][account]}("");
         requests[id][account] = 0; // save some gas
         requesters[id].remove(account);
+        token.safeTransfer(account, requests[id][account]);
         emit RejectRequest(account, id);
     }
 
@@ -191,20 +195,18 @@ contract DRecruitV1 is
             if (requests[id][accounts[i]] == 0) {
                 continue;
             }
-            // solhint-disable-next-line avoid-low-level-calls
-            address(accounts[i]).call{value: requests[id][accounts[i]]}("");
             requests[id][accounts[i]] = 0; // save some gas
             requesters[id].remove(accounts[i]);
+            token.safeTransfer(accounts[i], requests[id][accounts[i]]);
             emit RejectRequest(accounts[i], id);
         }
     }
 
     function revokeRequest(uint256 id) external {
         require(requests[id][msg.sender] != 0, "NOT_REQUESTED");
-        // solhint-disable-next-line avoid-low-level-calls
-        address(msg.sender).call{value: requests[id][msg.sender]}("");
         requests[id][msg.sender] = 0; // save some gas
         requesters[id].remove(msg.sender);
+        token.safeTransfer(msg.sender, requests[id][msg.sender]);
         emit RevokeRequest(msg.sender, id);
     }
 
