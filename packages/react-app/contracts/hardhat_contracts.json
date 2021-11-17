@@ -1083,7 +1083,7 @@
       "chainId": "80001",
       "contracts": {
         "DRecruitV1": {
-          "address": "0xc23209b2bE4e25D763FE3bDac977934a225052F1",
+          "address": "0x9d70D8DF17e40Ec9b0870Fe8f2A41D77380137dB",
           "abi": [
             {
               "inputs": [],
@@ -1736,6 +1736,11 @@
                   "internalType": "uint256",
                   "name": "_fee",
                   "type": "uint256"
+                },
+                {
+                  "internalType": "contract IERC20",
+                  "name": "_token",
+                  "type": "address"
                 }
               ],
               "name": "initialize",
@@ -1883,6 +1888,11 @@
                 {
                   "internalType": "uint256",
                   "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "stake",
                   "type": "uint256"
                 }
               ],
@@ -2073,6 +2083,19 @@
                   "internalType": "bool",
                   "name": "",
                   "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "token",
+              "outputs": [
+                {
+                  "internalType": "contract IERC20",
+                  "name": "",
+                  "type": "address"
                 }
               ],
               "stateMutability": "view",
