@@ -8,7 +8,7 @@ async function main () {
   await dRecruit.deployTransaction.wait()
   console.log('DRecruit deployed to:', dRecruit.address)
   const fee = hre.ethers.utils.parseUnits("0.01", "ether")
-  await dRecruit.initialize(fee)
+  await dRecruit.initialize(fee, '0xfe4f5145f6e09952a5ba9e956ed0c25e3fa4c7f1')
   console.log('Contract initialized', dRecruit.address)
 }
 
