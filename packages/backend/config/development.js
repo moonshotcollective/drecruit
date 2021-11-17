@@ -3,12 +3,23 @@ require('dotenv').config()
 module.exports = {
   API_CONFIG: {
     api: {
+      sessionOptions: {
+        cookieName: process.env.COOKIE_NAME || 'drecruit-session-dev',
+        key: process.env.COOKIE_KEY,
+        cookie: {
+          // options for setCookie, see https://github.com/fastify/fastify-cookie
+          domain: process.env.DOMAIN,
+          secure: true,
+          httpOnly: true,
+          path: '/',
+          maxAge: 144 * 60 * 60 * 1000 // 6 days
+        }
+      },
       corsOptions: {
         credentials: true,
         origin: function (origin, callback) {
           const validPatternRegexes = [
-            /^(.*)drecruit-web-staging.herokuapp.com(\/(.*)|)$/,
-            /^(www.|)drecruit-web-staging.herokuapp.com(\/(.*)|)$/,
+            /^(.*)staging.recruiter.party(\/(.*)|)$/,
             /^http:\/\/localhost:[0-9]{4}$/
           ]
           if (validPatternRegexes.some((rx) => rx.test(origin)) || !origin) {

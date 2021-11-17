@@ -4,7 +4,7 @@ module.exports = {
   API_CONFIG: {
     api: {
       sessionOptions: {
-        cookieName: process.env.COOKIE_NAME || 'drecruit-session',
+        cookieName: process.env.COOKIE_NAME || 'drecruit-session-staging',
         key: process.env.COOKIE_KEY,
         cookie: {
           // options for setCookie, see https://github.com/fastify/fastify-cookie

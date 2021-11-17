@@ -23,8 +23,7 @@ module.exports = {
         credentials: true,
         origin: function (origin, callback) {
           const validPatternRegexes = [
-            /^(.*)drecruit-web-staging.herokuapp.com(\/(.*)|)$/,
-            /^(www.|)drecruit-web-staging.herokuapp.com(\/(.*)|)$/
+            /^(.*)staging.recruiter.party(\/(.*)|)$/,
           ]
           if (validPatternRegexes.some((rx) => rx.test(origin)) || !origin) {
             callback(null, true)
