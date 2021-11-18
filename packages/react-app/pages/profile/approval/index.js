@@ -17,6 +17,7 @@ function ApproveShareContactInformation() {
   const [requesters, setRequesters] = useState();
   const [accessRequests, setAccessRequests] = useState();
   const [myPrivateProfile, setMyPrivateProfile] = useState();
+  const [recruiters, setRecruiters] = useState([]);
 
   const init = async () => {
     if (context.injectedProvider && context.injectedProvider.getSigner() && context.self) {
@@ -33,6 +34,27 @@ function ApproveShareContactInformation() {
       setMyPrivateProfile(privateProfile);
       const reqs = await dRecruitV1Contract.getRequesters(privateProfile.tokenId);
       setRequesters(reqs);
+      console.log(context.injectedProvider);
+      const core = ceramicCoreFactory();
+      const recruiterDIDs = await Promise.all(
+        reqs.map(recruiterAddress =>
+          core.getAccountDID(`${recruiterAddress}@eip155:${context.injectedProvider._network.chainId}`),
+        ),
+      );
+      const recruiterProfiles = await Promise.all(
+        recruiterDIDs.map(async (did, idx) => {
+          const profile = await core.get("basicProfile", did);
+          const formattedAvatar = profile.image
+            ? "https://ipfs.io/ipfs/" + profile.image.original.src.split("//")[1]
+            : null;
+          return {
+            address: reqs[idx],
+            ...profile,
+            avatar: formattedAvatar,
+          };
+        }),
+      );
+      setRecruiters(recruiterProfiles);
     }
   };
   useEffect(() => {
@@ -58,8 +80,8 @@ function ApproveShareContactInformation() {
     <Layout>
       {requesters && requesters.length > 0 ? (
         <SimpleGrid columns={4} spacing={10}>
-          {requesters.map(requesterAddress => (
-            <Center py={6} key={requesterAddress}>
+          {recruiters.map(recruiter => (
+            <Center py={6} key={recruiter.address}>
               <Box
                 maxW={"320px"}
                 w={"full"}
@@ -72,6 +94,7 @@ function ApproveShareContactInformation() {
                 <Avatar
                   size={"xl"}
                   src={
+                    recruiter.avatar ||
                     "https://images.unsplash.com/photo-1520810627419-35e362c5dc07?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ"
                   }
                   alt={"Avatar Alt"}
@@ -89,21 +112,18 @@ function ApproveShareContactInformation() {
                     right: 3,
                   }}
                 />
+                <br />
                 <Badge px={2} py={1} bg={useColorModeValue("gray.50", "gray.800")} fontWeight={"400"}>
-                  {requesterAddress}
+                  {recruiter.address.slice(0, 10)}
                 </Badge>
                 <Heading fontSize={"2xl"} fontFamily={"body"}>
-                  Lindsey James
+                  {recruiter.emoji} {recruiter.name}
                 </Heading>
                 <Text fontWeight={600} color={"gray.500"} mb={4}>
-                  @lindsey_jam3s
+                  <Link href={recruiter.url}>{recruiter.url}</Link>
                 </Text>
                 <Text textAlign={"center"} color={useColorModeValue("gray.700", "gray.400")} px={3}>
-                  Actress, musician, songwriter and artist. PM for work inquires or{" "}
-                  <Link href={"#"} color={"blue.400"}>
-                    #tag
-                  </Link>{" "}
-                  me in your posts
+                  {recruiter.description}
                 </Text>
 
                 <Stack align={"center"} justify={"center"} direction={"row"} mt={6}>
@@ -132,7 +152,7 @@ function ApproveShareContactInformation() {
                     rounded={"full"}
                     bg={"blue.400"}
                     color={"white"}
-                    onClick={() => handleApproval(requesterAddress)}
+                    onClick={() => handleApproval(recruiter.address)}
                     boxShadow={"0px 1px 25px -5px rgb(66 153 225 / 48%), 0 10px 10px -5px rgb(66 153 225 / 43%)"}
                     _hover={{
                       bg: "blue.500",
