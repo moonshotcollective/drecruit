@@ -80,26 +80,30 @@ function Home() {
   );
   const init = async () => {
     if (context.injectedProvider && context.injectedProvider.getSigner()) {
-      const signer = context.injectedProvider.getSigner();
-      const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
-      setDRecruitContract(contract);
-      const lastTokenId = await contract.getLastTokenId();
-      const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
-      const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
-      console.log(tokenURIs);
-      const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
-      const core = ceramicCoreFactory();
-      const devProfiles = await Promise.all(
-        developersDID.map(async did => ({
-          did,
-          basicProfile: await core.get("basicProfile", did),
-          cryptoAccounts: await core.get("cryptoAccounts", did),
-          webAccounts: await core.get("alsoKnownAs", did),
-          publicProfile: await core.get("publicProfile", did),
-          privateProfile: await core.get("privateProfile", did),
-        })),
-      );
-      setDeveloperProfiles(devProfiles);
+      try {
+        const signer = context.injectedProvider.getSigner();
+        const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
+        setDRecruitContract(contract);
+        const lastTokenId = await contract.getLastTokenId();
+        const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
+        const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
+        console.log(tokenURIs);
+        const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
+        const core = ceramicCoreFactory();
+        const devProfiles = await Promise.all(
+          developersDID.map(async did => ({
+            did,
+            basicProfile: await core.get("basicProfile", did),
+            cryptoAccounts: await core.get("cryptoAccounts", did),
+            webAccounts: await core.get("alsoKnownAs", did),
+            publicProfile: await core.get("publicProfile", did),
+            privateProfile: await core.get("privateProfile", did),
+          })),
+        );
+        setDeveloperProfiles(devProfiles);
+      } catch (error) {
+        alert("Please switch to the Mumbai testnet.");
+      }
     }
   };
 
