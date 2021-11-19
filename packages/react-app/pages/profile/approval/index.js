@@ -1,7 +1,7 @@
 import { Badge, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
-import { loadDRecruitV1Contract } from "../../../helpers";
+import { getSlicedAddress, loadDRecruitV1Contract } from "../../../helpers";
 
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../../../ceramic";
 import modelAliases from "../../../model.json";
@@ -37,9 +37,7 @@ function ApproveShareContactInformation() {
       console.log(context.injectedProvider);
       const core = ceramicCoreFactory();
       const recruiterDIDs = await Promise.all(
-        reqs.map(recruiterAddress =>
-          core.getAccountDID(`${recruiterAddress}@eip155:${context.injectedProvider._network.chainId}`),
-        ),
+        reqs.map(recruiterAddress => core.getAccountDID(`${recruiterAddress}@eip155:${context.targetNetwork.chainId}`)),
       );
       const recruiterProfiles = await Promise.all(
         recruiterDIDs.map(async (did, idx) => {
@@ -114,18 +112,21 @@ function ApproveShareContactInformation() {
                 />
                 <br />
                 <Badge px={2} py={1} bg={useColorModeValue("gray.50", "gray.800")} fontWeight={"400"}>
-                  {recruiter.address.slice(0, 10)}
+                  {getSlicedAddress(recruiter.address)}
                 </Badge>
                 <Heading fontSize={"2xl"} fontFamily={"body"}>
-                  {recruiter.emoji} {recruiter.name}
+                  {recruiter.emoji || ""} {recruiter.name || "Anonymous"}
                 </Heading>
-                <Text fontWeight={600} color={"gray.500"} mb={4}>
-                  <Link href={recruiter.url}>{recruiter.url}</Link>
-                </Text>
-                <Text textAlign={"center"} color={useColorModeValue("gray.700", "gray.400")} px={3}>
-                  {recruiter.description}
-                </Text>
-
+                {recruiter.url && (
+                  <Text fontWeight={600} color={"gray.500"} mb={4}>
+                    <Link href={recruiter.url}>{recruiter.url}</Link>
+                  </Text>
+                )}
+                {recruiter.description && (
+                  <Text textAlign={"center"} color={useColorModeValue("gray.700", "gray.400")} px={3}>
+                    {recruiter.description}
+                  </Text>
+                )}
                 <Stack align={"center"} justify={"center"} direction={"row"} mt={6}>
                   <Badge px={2} py={1} bg={useColorModeValue("gray.50", "gray.800")} fontWeight={"400"}>
                     #Design
