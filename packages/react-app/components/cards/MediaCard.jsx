@@ -65,7 +65,7 @@ function MediaCard({
 
   const handleRequestPrivateProfileUnlock = async () => {
     const tx = await dRecruitContract.request(privateProfile.tokenId, {
-      value: ethers.utils.parseEther("0.1"),
+      value: ethers.utils.parseEther("0.01"),
     });
     const receipt = await tx.wait();
     const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
@@ -84,7 +84,7 @@ function MediaCard({
       overflow={"hidden"}
       my="5"
     >
-      <Image alt="cover" h={"120px"} w={"full"} src={coverSrc} objectFit="cover" />
+      <Image alt="cover" h={"120px"} w={"full"} src={coverSrc || "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=774&q=80"} objectFit="cover" />
       <Flex justify={"center"} mt={-12}>
         <Avatar
           size={"xl"}
@@ -98,10 +98,10 @@ function MediaCard({
       <Box p={6}>
         <Stack spacing={0} align="left" mb={5}>
           <Heading fontSize={"2xl"} fontWeight={600} fontFamily={"body"}>
-            {heading || "No Name"}
+            {heading || "Anonymous"}
           </Heading>
           <Heading fontSize={"lg"} fontWeight={500} fontFamily={"body"}>
-            {description || "No Description"}
+            {description}
           </Heading>
           <Text color={"gray.500"}>{subheading}</Text>
           <Text color={"gray.500"}>{date}</Text>
@@ -150,7 +150,7 @@ function MediaCard({
               </HStack>
               <HStack>
                 <Icon as={GrLocation} />
-                <Text fontWeight="bold" color={"gray.500"}>
+                <Text fontWeight="bold">
                   {decryptedData.physicalAddress}
                 </Text>
               </HStack>
@@ -164,7 +164,7 @@ function MediaCard({
           // TODO: get dev main address
           onClick={handleRequestPrivateProfileUnlock}
         >
-          {canView ? "✔️ Informations already unlocked" : primaryAction}
+          {canView ? "✔️ Information already unlocked" : primaryAction}
         </Button>
       </Box>
     </Box>

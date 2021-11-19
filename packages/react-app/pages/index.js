@@ -154,12 +154,18 @@ function Home() {
                   avatarSrc={formattedAvatar}
                   coverSrc={formattedBg}
                   publicProfile={publicProfile}
-                  heading={basicProfile.emoji + basicProfile.name}
-                  subheading={`Location: ${basicProfile.residenceCountry}, ${basicProfile.homeLocation}`}
+                  heading={basicProfile.emoji + " " + basicProfile.name}
+                  subheading={`${
+                    basicProfile.residenceCountry || basicProfile.homeLocation
+                      ? "Location: " +
+                        basicProfile.residenceCountry +
+                        (basicProfile.homeLocation ? ", " + basicProfile.homeLocation : "")
+                      : ""
+                  }`}
                   description={basicProfile.description}
                   date={`Birthdate: ${basicProfile.birthDate}`}
-                  primaryAction="Unlock contact informations"
-                  secondaryAction="View contact informations"
+                  primaryAction="Unlock contact information"
+                  secondaryAction="View contact information"
                   dRecruitContract={dRecruitContract}
                   hasWebAccount={!!webAccounts}
                   privateProfile={privateProfile}
@@ -185,12 +191,18 @@ function Home() {
                 avatarSrc={formattedAvatar}
                 coverSrc={formattedBg}
                 publicProfile={publicProfile}
-                heading={basicProfile.emoji + basicProfile.name}
-                subheading={`Location: ${basicProfile.residenceCountry}, ${basicProfile.homeLocation}`}
+                heading={basicProfile.emoji + " " + basicProfile.name}
+                subheading={`${
+                  basicProfile.residenceCountry || basicProfile.homeLocation
+                    ? "Location: " +
+                      basicProfile.residenceCountry +
+                      (basicProfile.homeLocation ? ", " + basicProfile.homeLocation : "")
+                    : ""
+                }`}
                 description={basicProfile.description}
                 date={`Birthdate: ${basicProfile.birthDate}`}
-                primaryAction="Unlock contact informations"
-                secondaryAction="View contact informations"
+                primaryAction="Unlock contact information"
+                secondaryAction="View contact information"
                 dRecruitContract={dRecruitContract}
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
