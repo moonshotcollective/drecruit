@@ -15,3 +15,7 @@ canvas {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+
+.blockies {
+  border-radius: 50%;
+}

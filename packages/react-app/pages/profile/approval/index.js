@@ -1,4 +1,4 @@
-import { Badge, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
+import { Badge, Spacer, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { getSlicedAddress, loadDRecruitV1Contract } from "../../../helpers";
@@ -84,6 +84,7 @@ function ApproveShareContactInformation() {
               <Box
                 maxW={"320px"}
                 w={"full"}
+                h="450px"
                 bg={useColorModeValue("white", "gray.900")}
                 boxShadow={"2xl"}
                 rounded={"lg"}
@@ -91,27 +92,10 @@ function ApproveShareContactInformation() {
                 textAlign={"center"}
               >
                 {recruiter.avatar ? (
-                  <Avatar
-                    size={"xl"}
-                    src={recruiter.avatar}
-                    alt={"Avatar Alt"}
-                    mb={4}
-                    pos={"relative"}
-                    _after={{
-                      content: '""',
-                      w: 4,
-                      h: 4,
-                      bg: "green.300",
-                      border: "2px solid white",
-                      rounded: "full",
-                      pos: "absolute",
-                      bottom: 0,
-                      right: 3,
-                    }}
-                  />
+                  <Avatar size={"xl"} src={recruiter.avatar} alt={"Avatar Alt"} mb={4} pos={"relative"} />
                 ) : (
                   <Box justifyContent="center" display="flex">
-                    <Blockies seed={recruiter.address.toLowerCase()} size={8} scale={10} />
+                    <Blockies size={10} seed={recruiter.address.toLowerCase()} className="blockies" scale={10} />
                   </Box>
                 )}
 
@@ -127,10 +111,12 @@ function ApproveShareContactInformation() {
                     <Link href={recruiter.url}>{recruiter.url}</Link>
                   </Text>
                 )}
-                {recruiter.description && (
+                {recruiter.description ? (
                   <Text textAlign={"center"} color={useColorModeValue("gray.700", "gray.400")} px={3}>
                     {recruiter.description}
                   </Text>
+                ) : (
+                  <Spacer />
                 )}
                 <Stack align={"center"} justify={"center"} direction={"row"} mt={6}>
                   <Badge px={2} py={1} bg={useColorModeValue("gray.50", "gray.800")} fontWeight={"400"}>

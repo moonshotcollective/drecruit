@@ -87,8 +87,7 @@ function Home() {
         const lastTokenId = await contract.getLastTokenId();
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
         const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
-        console.log(tokenURIs);
-        const developersDID = tokenURIs.map(uri => getDidFromTokenURI(uri).did);
+        const developersDID = [...new Set(tokenURIs.map(uri => getDidFromTokenURI(uri).did))];
         const core = ceramicCoreFactory();
         const devProfiles = await Promise.all(
           developersDID.map(async did => ({
@@ -166,7 +165,7 @@ function Home() {
                   }`}
                   description={basicProfile.description}
                   date={`Birthdate: ${basicProfile.birthDate}`}
-                  primaryAction="Unlock contact information"
+                  primaryAction="Request contact information"
                   secondaryAction="View contact information"
                   dRecruitContract={dRecruitContract}
                   hasWebAccount={!!webAccounts}
@@ -177,7 +176,14 @@ function Home() {
           })}
       </SimpleGrid>
       <Heading>All developers:</Heading>
-      <SimpleGrid columns={4} spacing={10}>
+      <SimpleGrid
+        columns={{
+          sm: 1,
+          md: 3,
+          lg: 3,
+        }}
+        spacing={5}
+      >
         {developerProfiles.map(({ did, basicProfile, cryptoAccounts, webAccounts, privateProfile, publicProfile }) => {
           const formattedAvatar = basicProfile.image
             ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
@@ -205,7 +211,7 @@ function Home() {
                 }`}
                 description={basicProfile.description}
                 date={`Birthdate: ${basicProfile.birthDate}`}
-                primaryAction="Unlock contact information"
+                primaryAction="Request contact information"
                 secondaryAction="View contact information"
                 dRecruitContract={dRecruitContract}
                 hasWebAccount={!!webAccounts}

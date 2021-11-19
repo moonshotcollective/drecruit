@@ -86,16 +86,29 @@ function MediaCard({
       overflow={"hidden"}
       my="5"
     >
-      <Image alt="cover" h={"120px"} w={"full"} src={coverSrc || "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=774&q=80"} objectFit="cover" />
+      <Image
+        alt="cover"
+        h={"120px"}
+        w={"full"}
+        src={
+          coverSrc ||
+          "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=774&q=80"
+        }
+        objectFit="cover"
+      />
       <Flex justify={"center"} mt={-12}>
+        {avatarSrc ? (
           <Avatar
-          size={"xl"}
-          src={avatarSrc}
-          alt={"Author"}
-          css={{
-            border: "2px solid white",
-          }}
-        />
+            size={"xl"}
+            src={avatarSrc}
+            alt={"Author"}
+            css={{
+              border: "2px solid white",
+            }}
+          />
+        ) : (
+          <Blockies size={10} seed={account.toLowerCase()} className="blockies" scale={10} />
+        )}
       </Flex>
       <Box p={6}>
         <Stack spacing={0} align="left" mb={5}>
@@ -152,9 +165,7 @@ function MediaCard({
               </HStack>
               <HStack>
                 <Icon as={GrLocation} />
-                <Text fontWeight="bold">
-                  {decryptedData.physicalAddress}
-                </Text>
+                <Text fontWeight="bold">{decryptedData.physicalAddress}</Text>
               </HStack>
             </Stack>
           </Box>
