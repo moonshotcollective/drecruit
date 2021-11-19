@@ -70,10 +70,10 @@ function MediaCard({
       value: ethers.utils.parseEther("0.01"),
     });
     const receipt = await tx.wait();
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
-      withCredentials: true,
-    });
-    return data;
+    // const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
+    //   withCredentials: true,
+    // });
+    // return data;
   };
 
   return (

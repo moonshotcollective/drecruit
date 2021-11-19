@@ -139,18 +139,20 @@ function Home() {
       <SimpleGrid columns={4} spacing={10}>
         {isMatch &&
           results &&
-          results.map(({ did, basicProfile, webAccounts, privateProfile, publicProfile }) => {
+          results.map(({ did, basicProfile, cryptoAccounts, webAccounts, privateProfile, publicProfile }) => {
             const formattedAvatar = basicProfile.image
               ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
-              : null;
+              : undefined;
             const formattedBg = basicProfile.background
               ? "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1]
-              : null;
+              : undefined;
+            const account = Object.keys(cryptoAccounts)[0].split("@")[0];
             return (
               publicProfile &&
               privateProfile && (
                 <MediaCard
                   key={did}
+                  account={account}
                   avatarSrc={formattedAvatar}
                   coverSrc={formattedBg}
                   publicProfile={publicProfile}
