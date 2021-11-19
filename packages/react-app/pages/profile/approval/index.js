@@ -10,6 +10,7 @@ import { Avatar } from "@chakra-ui/avatar";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { Layout } from "../../../components/layout/Layout";
 import { Web3Context } from "../../../helpers/Web3Context";
+import Blockies from "react-blockies";
 
 function ApproveShareContactInformation() {
   const context = useContext(Web3Context);
@@ -89,27 +90,31 @@ function ApproveShareContactInformation() {
                 p={6}
                 textAlign={"center"}
               >
-                <Avatar
-                  size={"xl"}
-                  src={
-                    recruiter.avatar ||
-                    "https://images.unsplash.com/photo-1520810627419-35e362c5dc07?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ"
-                  }
-                  alt={"Avatar Alt"}
-                  mb={4}
-                  pos={"relative"}
-                  _after={{
-                    content: '""',
-                    w: 4,
-                    h: 4,
-                    bg: "green.300",
-                    border: "2px solid white",
-                    rounded: "full",
-                    pos: "absolute",
-                    bottom: 0,
-                    right: 3,
-                  }}
-                />
+                {recruiter.avatar ? (
+                  <Avatar
+                    size={"xl"}
+                    src={recruiter.avatar}
+                    alt={"Avatar Alt"}
+                    mb={4}
+                    pos={"relative"}
+                    _after={{
+                      content: '""',
+                      w: 4,
+                      h: 4,
+                      bg: "green.300",
+                      border: "2px solid white",
+                      rounded: "full",
+                      pos: "absolute",
+                      bottom: 0,
+                      right: 3,
+                    }}
+                  />
+                ) : (
+                  <Box justifyContent="center" display="flex">
+                    <Blockies seed={recruiter.address.toLowerCase()} size={8} scale={10} />
+                  </Box>
+                )}
+
                 <br />
                 <Badge px={2} py={1} bg={useColorModeValue("gray.50", "gray.800")} fontWeight={"400"}>
                   {getSlicedAddress(recruiter.address)}
