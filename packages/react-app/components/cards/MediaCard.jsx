@@ -21,10 +21,12 @@ import { BsFillPersonLinesFill } from "react-icons/bs";
 import { GrLocation } from "react-icons/gr";
 import { ethers } from "ethers";
 import axios from "axios";
+import Blockies from "react-blockies";
 
 import { Web3Context } from "../../helpers/Web3Context";
 
 function MediaCard({
+  account,
   avatarSrc,
   coverSrc,
   description,
@@ -86,7 +88,7 @@ function MediaCard({
     >
       <Image alt="cover" h={"120px"} w={"full"} src={coverSrc || "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=774&q=80"} objectFit="cover" />
       <Flex justify={"center"} mt={-12}>
-        <Avatar
+          <Avatar
           size={"xl"}
           src={avatarSrc}
           alt={"Author"}
@@ -110,7 +112,7 @@ function MediaCard({
           <HStack spacing={4}>
             {publicProfile.skillTags.map(skill => (
               <Tag size="md" key={skill} colorScheme="cyan">
-                <TagLabel>{skill}</TagLabel>
+                <TagLabel alt={skill}>{skill}</TagLabel>
               </Tag>
             ))}
           </HStack>
