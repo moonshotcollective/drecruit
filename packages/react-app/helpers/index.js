@@ -23,6 +23,8 @@ export const getDidFromTokenURI = tokenURI => {
   };
 };
 
+export const getSlicedAddress = address => address.slice(0, 5) + "..." + address.slice(-3);
+
 export const emojis = [
   "✌",
   "😂",
