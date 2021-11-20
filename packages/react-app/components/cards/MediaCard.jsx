@@ -16,12 +16,14 @@ import {
   TagLabel,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { Icon, EmailIcon, InfoIcon, PhoneIcon } from "@chakra-ui/icons";
+import { Icon, EmailIcon, InfoIcon, PhoneIcon, LinkIcon } from "@chakra-ui/icons";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { GrLocation } from "react-icons/gr";
 import { ethers } from "ethers";
 import axios from "axios";
 import Blockies from "react-blockies";
+import { useToast } from "@chakra-ui/react";
+import { NETWORKS } from "../../constants";
 
 import { Web3Context } from "../../helpers/Web3Context";
 
@@ -65,11 +67,31 @@ function MediaCard({
     })();
   }, [privateProfile]);
 
+  const toast = useToast();
+
   const handleRequestPrivateProfileUnlock = async () => {
-    const tx = await dRecruitContract.request(privateProfile.tokenId, {
-      value: ethers.utils.parseEther("0.01"),
-    });
-    const receipt = await tx.wait();
+    try {
+      const tx = await dRecruitContract.request(privateProfile.tokenId, {
+        value: ethers.utils.parseEther("0.01"),
+      });
+      toast({
+      title: "Transaction sent",
+      description: <text>Your transaction was successfully sent <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
+      status: "success"
+      });
+      const receipt = await tx.wait();
+      toast({
+        title: "Transaction confirmed",
+        description: <text>Your transaction was confirmed <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
+        status: "success"
+      })
+    } catch (err) {
+      toast({
+        title: "Transaction failed",
+        description: err.message + (err.data ? ` ${err.data.message}` : ""),
+        status: "error"
+      })
+    }
     // const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
     //   withCredentials: true,
     // });
