@@ -1,7 +1,7 @@
 //require("dotenv");
 // MY INFURA_ID, SWAP IN YOURS FROM https://infura.io/dashboard/ethereum
 export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID;
-console.log({ INFURA_ID });
+
 // MY ETHERSCAN_ID, SWAP IN YOURS FROM https://etherscan.io/myapikey
 export const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY;
 
@@ -65,15 +65,15 @@ export const NETWORKS = {
     faucet: "https://xdai-faucet.top/",
     blockExplorer: "https://blockscout.com/poa/xdai/",
   },
-  matic: {
-    name: "matic",
+  polygon: {
+    name: "polygon",
     color: "#2bbdf7",
     chainId: 137,
     price: 1,
     gasPrice: 1000000000,
     rpcUrl: "https://rpc-mainnet.maticvigil.com",
-    faucet: "https://faucet.matic.network/",
-    blockExplorer: "https://explorer-mainnet.maticvigil.com//",
+    faucet: "https://faucet.polygon.technology/",
+    blockExplorer: "https://mumbai.polygonscan.com/",
   },
   mumbai: {
     name: "mumbai",
@@ -82,8 +82,8 @@ export const NETWORKS = {
     price: 1,
     gasPrice: 1000000000,
     rpcUrl: "https://rpc-mumbai.maticvigil.com",
-    faucet: "https://faucet.matic.network/",
-    blockExplorer: "https://mumbai-explorer.matic.today/",
+    faucet: "https://faucet.polygon.technology/",
+    blockExplorer: "https://mumbai.polygonscan.com/",
   },
   localArbitrum: {
     name: "localArbitrum",
