@@ -84,7 +84,7 @@ function Home() {
         const signer = context.injectedProvider.getSigner();
         const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
         setDRecruitContract(contract);
-        const lastTokenId = await contract.getLastTokenId();
+        const lastTokenId = await contract.tokenId();
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
         const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
         const developersDID = [...new Set(tokenURIs.map(uri => getDidFromTokenURI(uri).did))];

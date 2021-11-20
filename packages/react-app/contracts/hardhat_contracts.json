@@ -597,19 +597,6 @@
               "type": "function"
             },
             {
-              "inputs": [],
-              "name": "getLastTokenId",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
               "inputs": [
                 {
                   "internalType": "uint256",
@@ -1096,7 +1083,7 @@
       "chainId": "80001",
       "contracts": {
         "DRecruitV1": {
-          "address": "0x1f2Bd43C681386d99b7D134B68Ef0065C48E03FC",
+          "address": "0xc23209b2bE4e25D763FE3bDac977934a225052F1",
           "abi": [
             {
               "inputs": [],
@@ -1607,30 +1594,6 @@
             {
               "inputs": [
                 {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "name": "balances",
-              "outputs": [
-                {
-                  "internalType": "address",
-                  "name": "submitter",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "fees",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
                   "internalType": "address",
                   "name": "account",
                   "type": "address"
@@ -1677,19 +1640,6 @@
             {
               "inputs": [],
               "name": "fee",
-              "outputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [],
-              "name": "getLastTokenId",
               "outputs": [
                 {
                   "internalType": "uint256",
@@ -1821,7 +1771,7 @@
               "inputs": [
                 {
                   "internalType": "string",
-                  "name": "_tokenUri",
+                  "name": "tokenUri",
                   "type": "string"
                 },
                 {
@@ -1833,6 +1783,25 @@
               "name": "mint",
               "outputs": [],
               "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "owners",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
               "type": "function"
             },
             {
@@ -1941,6 +1910,35 @@
                   "internalType": "uint256",
                   "name": "",
                   "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "resumes",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "submitter",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "fees",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "string",
+                  "name": "uri",
+                  "type": "string"
                 }
               ],
               "stateMutability": "view",
@@ -2088,25 +2086,6 @@
                   "internalType": "uint256",
                   "name": "_value",
                   "type": "uint256"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
-                }
-              ],
-              "name": "tokenUris",
-              "outputs": [
-                {
-                  "internalType": "string",
-                  "name": "",
-                  "type": "string"
                 }
               ],
               "stateMutability": "view",
