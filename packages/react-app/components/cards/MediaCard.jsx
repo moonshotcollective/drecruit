@@ -75,19 +75,19 @@ function MediaCard({
         value: ethers.utils.parseEther("0.01"),
       });
       toast({
-      title: "Transaction sent",
-      description: <text>Your transaction was successfully sent <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
-      status: "success"
+        title: "Request transaction sent",
+        description: <text>Your transaction was successfully sent <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
+        status: "success"
       });
       const receipt = await tx.wait();
       toast({
-        title: "Transaction confirmed",
+        title: "Request transaction confirmed",
         description: <text>Your transaction was confirmed <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
         status: "success"
       })
     } catch (err) {
       toast({
-        title: "Transaction failed",
+        title: "Request transaction failed",
         description: err.message + (err.data ? ` ${err.data.message}` : ""),
         status: "error"
       })

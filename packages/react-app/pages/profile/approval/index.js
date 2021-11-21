@@ -5,12 +5,16 @@ import { getSlicedAddress, loadDRecruitV1Contract } from "../../../helpers";
 
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../../../ceramic";
 import modelAliases from "../../../model.json";
+import { LinkIcon } from "@chakra-ui/icons";
 import { Button } from "@chakra-ui/button";
 import { Avatar } from "@chakra-ui/avatar";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { Layout } from "../../../components/layout/Layout";
 import { Web3Context } from "../../../helpers/Web3Context";
 import Blockies from "react-blockies";
+
+import { useToast } from "@chakra-ui/react";
+import { NETWORKS } from "../../../constants";
 
 function ApproveShareContactInformation() {
   const context = useContext(Web3Context);
@@ -19,6 +23,8 @@ function ApproveShareContactInformation() {
   const [accessRequests, setAccessRequests] = useState();
   const [myPrivateProfile, setMyPrivateProfile] = useState();
   const [recruiters, setRecruiters] = useState([]);
+
+  const toast = useToast();
 
   const init = async () => {
     if (context.injectedProvider && context.injectedProvider.getSigner() && context.self) {
@@ -37,20 +43,25 @@ function ApproveShareContactInformation() {
       setRequesters(reqs);
       console.log(context.injectedProvider);
       const core = ceramicCoreFactory();
-      const recruiterDIDs = await Promise.all(
+      const recruiterDIDs = await Promise.allSettled(
         reqs.map(recruiterAddress => core.getAccountDID(`${recruiterAddress}@eip155:${context.targetNetwork.chainId}`)),
       );
       const recruiterProfiles = await Promise.all(
         recruiterDIDs.map(async (did, idx) => {
-          const profile = await core.get("basicProfile", did);
-          const formattedAvatar = profile.image
-            ? "https://ipfs.io/ipfs/" + profile.image.original.src.split("//")[1]
-            : null;
-          return {
-            address: reqs[idx],
-            ...profile,
-            avatar: formattedAvatar,
-          };
+          if (did.status == "fulfilled") {
+            const profile = await core.get("basicProfile", did.value);
+            const formattedAvatar =
+              profile && profile.image ? "https://ipfs.io/ipfs/" + profile.image.original.src.split("//")[1] : null;
+            return {
+              address: reqs[idx],
+              ...profile,
+              avatar: formattedAvatar,
+            };
+          } else {
+            return {
+              address: reqs[idx],
+            };
+          }
         }),
       );
       setRecruiters(recruiterProfiles);
@@ -62,16 +73,47 @@ function ApproveShareContactInformation() {
 
   const handleApproval = useCallback(
     async requesterAddress => {
-      const decrypted = await context.self.client.ceramic.did?.decryptDagJWE(JSON.parse(myPrivateProfile.encrypted));
-      console.log({ decrypted });
-      const core = ceramicCoreFactory();
-      const recruiter = `${requesterAddress}@eip155:${context.targetNetwork.chainId}`;
-      console.log({ recruiter });
-      const did = await core.getAccountDID(recruiter);
-      console.log({ requesterAddress });
-      const tx = await contract.approveRequest(myPrivateProfile.tokenId, requesterAddress);
-      const receipt = await tx.wait();
-      return receipt;
+      // const decrypted = await context.self.client.ceramic.did?.decryptDagJWE(JSON.parse(myPrivateProfile.encrypted));
+      // console.log({ decrypted });
+      // const core = ceramicCoreFactory();
+      // const recruiter = `${requesterAddress}@eip155:${context.targetNetwork.chainId}`;
+      // console.log({ recruiter });
+      // const did = await core.getAccountDID(recruiter);
+      // console.log({ requesterAddress });
+      try {
+        const tx = await contract.approveRequest(myPrivateProfile.tokenId, requesterAddress);
+        toast({
+          title: "Approval transaction sent",
+          description: (
+            <text>
+              Your transaction was successfully sent{" "}
+              <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer">
+                <LinkIcon color="white" />
+              </a>
+            </text>
+          ),
+          status: "success",
+        });
+        const receipt = await tx.wait();
+        toast({
+          title: "Approval transaction confirmed",
+          description: (
+            <text>
+              Your transaction was confirmed{" "}
+              <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer">
+                <LinkIcon color="white" />
+              </a>
+            </text>
+          ),
+          status: "success",
+        });
+      } catch (err) {
+        toast({
+          title: "Approval transaction failed",
+          description: err.message + (err.data ? ` ${err.data.message}` : ""),
+          status: "error",
+        });
+      }
     },
     [context, myPrivateProfile],
   );
