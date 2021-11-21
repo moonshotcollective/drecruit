@@ -14,7 +14,7 @@ import { Web3Context } from "../../../helpers/Web3Context";
 import Blockies from "react-blockies";
 
 import { useToast } from "@chakra-ui/react";
-import { NETWORKS } from "../../../constants";
+import { NETWORKS, IPFS_GATEWAY } from "../../../constants";
 
 function ApproveShareContactInformation() {
   const context = useContext(Web3Context);
@@ -51,7 +51,7 @@ function ApproveShareContactInformation() {
           if (did.status == "fulfilled") {
             const profile = await core.get("basicProfile", did.value);
             const formattedAvatar =
-              profile && profile.image ? "https://ipfs.io/ipfs/" + profile.image.original.src.split("//")[1] : null;
+              profile && profile.image ? IPFS_GATEWAY + profile.image.original.src.split("//")[1] : null;
             return {
               address: reqs[idx],
               ...profile,

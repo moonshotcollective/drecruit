@@ -193,3 +193,5 @@ export const NETWORK = chainId => {
     }
   }
 };
+
+export const IPFS_GATEWAY = "https://cloudflare-ipfs.com/ipfs/";
