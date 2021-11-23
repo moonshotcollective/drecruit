@@ -1,7 +1,23 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Core } from "@self.id/core";
 import axios from "axios";
-import { Code, HStack, InputGroup, InputLeftElement, Box, Heading, SimpleGrid, VStack } from "@chakra-ui/react";
+import {
+  Button,
+  Code,
+  HStack,
+  InputGroup,
+  InputLeftElement,
+  Box,
+  Heading,
+  SimpleGrid,
+  VStack,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+} from "@chakra-ui/react";
 import { Web3Context } from "../helpers/Web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ModelManager } from "@glazed/devtools";
@@ -12,20 +28,7 @@ import { fromString, toString } from "uint8arrays";
 import { DataModel } from "@glazed/datamodel";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
-import {
-  Button,
-  Table,
-  Modal,
-  Form,
-  Input,
-  Divider,
-  InputNumber,
-  Select,
-  Typography,
-  Tag,
-  Space,
-  PageHeader,
-} from "antd";
+import { Table, Modal, Form, Input, Divider, InputNumber, Select, Typography, Tag, Space, PageHeader } from "antd";
 import { randomBytes } from "@stablelib/random";
 import { ethers } from "ethers";
 
@@ -41,6 +44,40 @@ import { IPFS_GATEWAY } from "../constants";
 
 function Home() {
   const context = useContext(Web3Context);
+  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
+  const onAlertClose = async () => {
+    const data = [
+      {
+        chainId: "0x" + context.targetNetwork.chainId.toString(16),
+        chainName: context.targetNetwork.name,
+        nativeCurrency: context.targetNetwork.nativeCurrency,
+        rpcUrls: [context.targetNetwork.rpcUrl],
+        blockExplorerUrls: [context.targetNetwork.blockExplorer],
+      },
+    ];
+    try {
+      await ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: data[0].chainId }],
+      });
+      setIsAlertOpen(false);
+    } catch (switchError) {
+      // This error code indicates that the chain has not been added to MetaMask.
+      if (switchError.code === 4902) {
+        try {
+          await ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: data,
+          });
+          setIsAlertOpen(false);
+        } catch (addError) {
+          console.log(addError);
+        }
+      }
+      // handle other "switch" errors
+    }
+  };
+  const cancelRef = React.useRef();
   const [inputEmail, setInputEmail] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [developerProfiles, setDeveloperProfiles] = useState([]);
@@ -79,6 +116,7 @@ function Home() {
     },
     [debouncedSearchTerm], // Only call effect if debounced search term changes
   );
+
   const init = async () => {
     if (context.injectedProvider && context.injectedProvider.getSigner()) {
       try {
@@ -102,7 +140,7 @@ function Home() {
         );
         setDeveloperProfiles(devProfiles);
       } catch (error) {
-        alert("Please switch to the Mumbai testnet.");
+        setIsAlertOpen(true);
       }
     }
   };
@@ -132,6 +170,25 @@ function Home() {
 
   return (
     <Layout>
+      <AlertDialog isOpen={isAlertOpen} leastDestructiveRef={cancelRef}>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Switch network
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              To use this app you must switch to the {context.targetNetwork.name} network.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onAlertClose} colorScheme="blue">
+                Switch
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
       <HomeActions contract={dRecruitContract} mySelf={context.self} />
       <Input type="search" placeholder="Search" onChange={e => setSearchTerm(e.target.value)} />
       {isSearching && <div>Searching ...</div>}
