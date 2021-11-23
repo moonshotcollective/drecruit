@@ -37,6 +37,7 @@ import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
 import { FiSearch } from "react-icons/fi";
 import { useDebounce } from "../hooks";
+import { IPFS_GATEWAY } from "../constants";
 
 function Home() {
   const context = useContext(Web3Context);
@@ -140,10 +141,10 @@ function Home() {
           results &&
           results.map(({ did, basicProfile, cryptoAccounts, webAccounts, privateProfile, publicProfile }) => {
             const formattedAvatar = basicProfile.image
-              ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
+              ? IPFS_GATEWAY + basicProfile.image.original.src.split("//")[1]
               : undefined;
             const formattedBg = basicProfile.background
-              ? "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1]
+              ? IPFS_GATEWAY + basicProfile.background.original.src.split("//")[1]
               : undefined;
             const account = Object.keys(cryptoAccounts)[0].split("@")[0];
             return (
@@ -186,10 +187,10 @@ function Home() {
       >
         {developerProfiles.map(({ did, basicProfile, cryptoAccounts, webAccounts, privateProfile, publicProfile }) => {
           const formattedAvatar = basicProfile.image
-            ? "https://ipfs.io/ipfs/" + basicProfile.image.original.src.split("//")[1]
+            ? IPFS_GATEWAY + basicProfile.image.original.src.split("//")[1]
             : undefined;
           const formattedBg = basicProfile.background
-            ? "https://ipfs.io/ipfs/" + basicProfile.background.original.src.split("//")[1]
+            ? IPFS_GATEWAY + basicProfile.background.original.src.split("//")[1]
             : undefined;
           const account = Object.keys(cryptoAccounts)[0].split("@")[0];
           return (
