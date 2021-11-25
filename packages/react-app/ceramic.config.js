@@ -13,12 +13,12 @@ const cryptoAccounts = require("@datamodels/identity-accounts-crypto");
 const webAccounts = require("@datamodels/identity-accounts-web");
 const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
 async function publishModel() {
-  let newSeed = process.env.REACT_APP_CERAMIC_SEED;
-  if (!process.env.REACT_APP_CERAMIC_SEED) {
-    console.warn("REACT_APP_CERAMIC_SEED not found in .env, generating a new seed..");
+  let newSeed = process.env.DID_KEY;
+  if (!process.env.DID_KEY) {
+    console.warn("DID_KEY not found in .env, generating a new seed..");
     newSeed = toString(randomBytes(32), "base16");
-    console.log(`Seed generated. Save this in your .env as REACT_APP_CERAMIC_SEED=${newSeed}`);
-    process.env.REACT_APP_CERAMIC_SEED = newSeed;
+    console.log(`Seed generated. Save this in your .env as DID_KEY=${newSeed}`);
+    process.env.DID_KEY = newSeed;
   }
   const did = new DID({
     provider: new Ed25519Provider(fromString(newSeed, "base16")),
