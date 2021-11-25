@@ -1,6 +1,8 @@
 import { Button } from "antd";
 import React from "react";
 import { useThemeSwitcher } from "react-css-theme-switcher";
+import axios from "axios";
+
 import Address from "./Address";
 import Balance from "./Balance";
 import Wallet from "./Wallet";
@@ -51,6 +53,11 @@ export default function Account({
   logoutOfWeb3Modal,
   blockExplorer,
 }) {
+  const handleLogout = async () => {
+    const result = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`);
+    console.log(result.data);
+    return logoutOfWeb3Modal();
+  };
   const modalButtons = [];
   if (web3Modal) {
     if (web3Modal.cachedProvider) {
@@ -60,7 +67,7 @@ export default function Account({
           style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4 }}
           shape="round"
           size="large"
-          onClick={logoutOfWeb3Modal}
+          onClick={handleLogout}
         >
           logout
         </Button>,
