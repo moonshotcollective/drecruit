@@ -125,6 +125,12 @@ const EditProfilePage = () => {
       });
     }
 
+    if (values["residenceCountry"] === "") {
+      delete values["residenceCountry"];
+    }
+    if (values["birthDate"] === "") {
+      delete values["birthDate"];
+    }
     if (!imageFile) {
       delete values["image"];
     }
@@ -197,8 +203,7 @@ const EditProfilePage = () => {
             </FormControl>
             <FormControl isInvalid={errors.emoji}>
               <FormLabel htmlFor="emoji">Emoji</FormLabel>
-              <Select borderColor="purple.500" {...register("emoji")}>
-                <option value={null}>Select an emoji</option>
+              <Select borderColor="purple.500" {...register("emoji")} placeholder="Select an emoji">
                 {emojis.map(emoji => (
                   <option value={emoji} key={emoji}>
                     {emoji}
