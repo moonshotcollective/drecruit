@@ -157,7 +157,7 @@ const EditPublicProfilePage = () => {
                       },
                     })}
                   />
-                  <Button bg="red.200" onClick={() => xpRemove()}>
+                  <Button bg="red.200" onClick={() => xpRemove(index)}>
                     Remove XP
                   </Button>
                 </HStack>
