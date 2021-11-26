@@ -54,8 +54,14 @@ export default function Account({
   blockExplorer,
 }) {
   const handleLogout = async () => {
-    const result = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`);
-    console.log(result.data);
+    try {
+      const result = await axios(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+        method: "post",
+        withCredentials: true
+    });
+    } catch (err) {
+      console.err(err);
+    }
     return logoutOfWeb3Modal();
   };
   const modalButtons = [];
