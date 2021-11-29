@@ -118,10 +118,9 @@ function Home() {
   );
 
   const init = async () => {
-    if (context.injectedProvider && context.injectedProvider.getSigner()) {
+    if (context.localProvider) {
       try {
-        const signer = context.injectedProvider.getSigner();
-        const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
+        const contract = await loadDRecruitV1Contract(context.targetNetwork, context.localProvider);
         setDRecruitContract(contract);
         const lastTokenId = await contract.tokenId();
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
