@@ -12,11 +12,7 @@ import {
 import { Box } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { useRouter } from "next/router";
-// import Image from "next/image";
-import modelAliases from "../../model.json";
-import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
 import { Web3Context } from "../../helpers/Web3Context";
 import { COUNTRIES } from "../../helpers/countries";
 

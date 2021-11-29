@@ -1,6 +1,5 @@
 import { Badge, Spacer, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { getSlicedAddress, loadDRecruitV1Contract } from "../../../helpers";
 
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../../../ceramic";
@@ -20,7 +19,6 @@ function ApproveShareContactInformation() {
   const context = useContext(Web3Context);
   const [contract, setContract] = useState();
   const [requesters, setRequesters] = useState();
-  const [accessRequests, setAccessRequests] = useState();
   const [myPrivateProfile, setMyPrivateProfile] = useState();
   const [recruiters, setRecruiters] = useState([]);
 

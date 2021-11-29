@@ -1,16 +1,9 @@
-import { Button, FormControl, FormErrorMessage, FormLabel, Input, Stack, Image, Textarea } from "@chakra-ui/react";
+import { Button, FormControl, FormErrorMessage, FormLabel, Input, Stack } from "@chakra-ui/react";
 import { Box } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
-// import Image from "next/image";
-import modelAliases from "../../model.json";
-import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
-import { useHistory } from "react-router";
-import PhoneNumberInput from "../../components/inputs/PhoneNumberInput";
-import { COUNTRIES } from "../../helpers/countries";
 import { Web3Context } from "../../helpers/Web3Context";
-import { getNetwork, loadDRecruitV1Contract } from "../../helpers";
+import { loadDRecruitV1Contract } from "../../helpers";
 import axios from "axios";
 import { useRouter } from "next/router";
 
@@ -25,10 +18,6 @@ const EditPrivateProfilePage = () => {
     formState: { errors, isSubmitting },
     setValue,
   } = useForm();
-  const countryOptions = COUNTRIES.map(({ name, iso }) => ({
-    label: name,
-    value: iso,
-  }));
 
   useEffect(() => {
     // fetch from Ceramic

@@ -1,16 +1,8 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
-import { Core } from "@self.id/core";
-import axios from "axios";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Button,
-  Code,
-  HStack,
-  InputGroup,
-  InputLeftElement,
-  Box,
   Heading,
   SimpleGrid,
-  VStack,
   AlertDialog,
   AlertDialogBody,
   AlertDialogFooter,
@@ -19,26 +11,13 @@ import {
   AlertDialogOverlay,
 } from "@chakra-ui/react";
 import { Web3Context } from "../helpers/Web3Context";
-import { CeramicClient } from "@ceramicnetwork/http-client";
-import { ModelManager } from "@glazed/devtools";
-import { DID } from "dids";
-import { Ed25519Provider } from "key-did-provider-ed25519";
-import { getResolver } from "key-did-resolver";
-import { fromString, toString } from "uint8arrays";
-import { DataModel } from "@glazed/datamodel";
-import { DIDDataStore } from "@glazed/did-datastore";
-import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
-import { Table, Modal, Form, Input, Divider, InputNumber, Select, Typography, Tag, Space, PageHeader } from "antd";
-import { randomBytes } from "@stablelib/random";
-import { ethers } from "ethers";
+import { Input } from "antd";
 
-import modelAliases from "../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
 import { getDidFromTokenURI, loadDRecruitV1Contract, loadTokenContract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
-import { FiSearch } from "react-icons/fi";
 import { useDebounce } from "../hooks";
 import { IPFS_GATEWAY } from "../constants";
 
@@ -78,8 +57,6 @@ function Home() {
     }
   };
   const cancelRef = React.useRef();
-  const [inputEmail, setInputEmail] = useState("");
-  const [recipients, setRecipients] = useState([]);
   const [developerProfiles, setDeveloperProfiles] = useState([]);
   // State and setters for ...
   // Search term
