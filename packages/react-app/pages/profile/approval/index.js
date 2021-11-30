@@ -2,8 +2,7 @@ import { Badge, Spacer, Box, Center, Heading, Link, SimpleGrid, Stack, Text } fr
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { getSlicedAddress, loadDRecruitV1Contract } from "../../../helpers";
 
-import { ceramicCoreFactory, CERAMIC_TESTNET } from "../../../ceramic";
-import modelAliases from "../../../model.json";
+import { ceramicCoreFactory } from "../../../ceramic";
 import { LinkIcon } from "@chakra-ui/icons";
 import { Button } from "@chakra-ui/button";
 import { Avatar } from "@chakra-ui/avatar";
@@ -31,7 +30,6 @@ function ApproveShareContactInformation() {
         context.injectedProvider.getSigner(),
       );
       setContract(dRecruitV1Contract);
-      const addresses = await window.ethereum.enable();
       const privateProfile = await context.self.get("privateProfile");
       if (!privateProfile) {
         return;
@@ -92,7 +90,7 @@ function ApproveShareContactInformation() {
           ),
           status: "success",
         });
-        const receipt = await tx.wait();
+        await tx.wait();
         toast({
           title: "Approval transaction confirmed",
           description: (

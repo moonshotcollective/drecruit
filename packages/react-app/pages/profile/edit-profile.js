@@ -19,7 +19,7 @@ import { COUNTRIES } from "../../helpers/countries";
 import { emojis } from "../../helpers";
 
 const EditProfilePage = () => {
-  const { address, targetNetwork, self } = useContext(Web3Context);
+  const { address, self } = useContext(Web3Context);
   console.log({ address });
   const router = useRouter();
   const [imageURL, setImageURL] = useState();
@@ -101,7 +101,6 @@ const EditProfilePage = () => {
         .then(response => {
           return response.cids;
         });
-      const refs = { image: image.current, background: background.current };
 
       ["image", "background"].forEach(key => {
         console.log(cids[key]);

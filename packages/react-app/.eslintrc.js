@@ -4,6 +4,8 @@ module.exports = {
   },
   extends: ["eslint:recommended", "prettier", "next"],
   rules: {
-    "no-console": "off"
+    "no-console": "warn",
+    "no-undef": "warn",
+    "react-hooks/rules-of-hooks": "warn",
   },
 };

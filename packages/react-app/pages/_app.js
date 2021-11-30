@@ -10,8 +10,6 @@ import DevUI from "../components/DevUI";
 import { Web3Provider } from "../helpers/Web3Context";
 import "../styles/index.css";
 
-const { SubMenu } = Menu;
-
 function MyApp({ Component, pageProps }) {
   const prevTheme = useRef("light");
   const [current, setCurrent] = useState();

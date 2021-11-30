@@ -5,14 +5,14 @@ import { Alert, Button } from "antd";
 import axios from "axios";
 import "antd/dist/antd.css";
 import Authereum from "authereum";
-import { useBalance, useContractLoader, useGasPrice, useOnBlock, useUserProviderAndSigner } from "eth-hooks";
+import { useBalance, useContractLoader, useGasPrice, useUserProviderAndSigner } from "eth-hooks";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 import Fortmatic from "fortmatic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 //import Torus from "@toruslabs/torus-embed"
 // import WalletLink from "walletlink";
 import Web3Modal from "web3modal";
-import { INFURA_ID, NETWORK, NETWORKS } from "../constants";
+import { INFURA_ID, NETWORKS } from "../constants";
 import { Transactor } from "../helpers";
 import { useContractConfig } from "../hooks";
 import { CERAMIC_TESTNET } from "../ceramic";
@@ -24,7 +24,7 @@ const { ethers } = require("ethers");
 export const Web3Context = React.createContext({});
 
 // provider Component that wraps the entire app and provides context variables
-export function Web3Provider({ children, network = "localhost", DEBUG = false, NETWORKCHECK = true, ...props }) {
+export function Web3Provider({ children, network = "localhost", DEBUG = false, NETWORKCHECK = true }) {
   // for Nextjs Builds, return null until "window" is available
   if (!global.window) {
     return null;
@@ -264,8 +264,6 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
 
   let networkDisplay = "";
   if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
-    const networkSelected = NETWORK(selectedChainId);
-    const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
         <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
@@ -345,7 +343,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     });
 
     // Subscribe to session disconnection
-    connection.on("disconnect", (code, reason) => {
+    connection.on("disconnect", () => {
       logoutOfWeb3Modal();
     });
   }, [setInjectedProvider]);
