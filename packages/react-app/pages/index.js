@@ -35,6 +35,7 @@ function Home() {
       },
     ];
     try {
+      // eslint-disable-next-line no-undef
       await ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: data[0].chainId }],
@@ -44,6 +45,7 @@ function Home() {
       // This error code indicates that the chain has not been added to MetaMask.
       if (switchError.code === 4902) {
         try {
+          // eslint-disable-next-line no-undef
           await ethereum.request({
             method: "wallet_addEthereumChain",
             params: data,
