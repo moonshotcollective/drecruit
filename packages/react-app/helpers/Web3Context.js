@@ -188,6 +188,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
   const selectedChainId =
     userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
+  const rightNetwork = localChainId == selectedChainId;
 
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
 
@@ -268,7 +269,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div style={{ zIndex: 10, position: "absolute", right: 0, top: 80, padding: 16 }}>
           <Alert
             message="⚠️ Wrong Network ID"
             description={
@@ -276,6 +277,61 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
                 You have <b>chain id 1337</b> for localhost and you need to change it to <b>31337</b> to work with
                 HardHat.
                 <div>(MetaMask -&gt; Settings -&gt; Networks -&gt; Chain ID -&gt; 31337)</div>
+              </div>
+            }
+            type="error"
+            closable={false}
+          />
+        </div>
+      );
+    } else {
+      networkDisplay = (
+        <div style={{ zIndex: 10, position: "absolute", right: 0, top: 80, padding: 16 }}>
+          <Alert
+            message="⚠️ Wrong Network"
+            description={
+              <div>
+                You have <b>{networkSelected && networkSelected.name}</b> selected and you need to be on{" "}
+                <Button
+                  onClick={async () => {
+                    const ethereum = window.ethereum;
+                    const data = [
+                      {
+                        chainId: "0x" + targetNetwork.chainId.toString(16),
+                        chainName: targetNetwork.name,
+                        nativeCurrency: targetNetwork.nativeCurrency,
+                        rpcUrls: [targetNetwork.rpcUrl],
+                        blockExplorerUrls: [targetNetwork.blockExplorer],
+                      },
+                    ];
+                    console.log("data", data);
+
+                    let switchTx;
+                    // https://docs.metamask.io/guide/rpc-api.html#other-rpc-methods
+                    try {
+                      switchTx = await ethereum.request({
+                        method: "wallet_switchEthereumChain",
+                        params: [{ chainId: data[0].chainId }],
+                      });
+                    } catch (switchError) {
+                      // not checking specific error code, because maybe we're not using MetaMask
+                      try {
+                        switchTx = await ethereum.request({
+                          method: "wallet_addEthereumChain",
+                          params: data,
+                        });
+                      } catch (addError) {
+                        // handle "add" error
+                      }
+                    }
+
+                    if (switchTx) {
+                      console.log(switchTx);
+                    }
+                  }}
+                >
+                  <b>{networkLocal && networkLocal.name}</b>
+                </Button>
               </div>
             }
             type="error"
@@ -410,6 +466,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     loadWeb3Modal,
     logoutOfWeb3Modal,
     contractConfig,
+    rightNetwork,
   };
 
   return <Web3Context.Provider value={providerProps}>{children}</Web3Context.Provider>;

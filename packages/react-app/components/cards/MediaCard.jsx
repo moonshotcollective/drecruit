@@ -44,10 +44,10 @@ function MediaCard({
   secondaryActionOnClick,
   secondaryAction,
   privateProfile,
-  dRecruitContract,
 }) {
   const [decryptedData, setDecryptedData] = useState();
   const [canView, setCanView] = useState(false);
+  const context = useContext(Web3Context);
   useEffect(() => {
     let isValidRecipient = false;
     (async () => {
@@ -71,7 +71,7 @@ function MediaCard({
 
   const handleRequestPrivateProfileUnlock = async () => {
     try {
-      const tx = await dRecruitContract.request(privateProfile.tokenId, {
+      const tx = await context.writeContracts.DRecruitV1.request(privateProfile.tokenId, {
         value: ethers.utils.parseEther("0.01"),
       });
       toast({
@@ -192,15 +192,17 @@ function MediaCard({
             </Stack>
           </Box>
         )}
-        <Button
-          disabled={canView}
-          w={"full"}
-          mt={8}
-          // TODO: get dev main address
-          onClick={handleRequestPrivateProfileUnlock}
-        >
-          {canView ? "✔️ Information already unlocked" : primaryAction}
-        </Button>
+        {context.rightNetwork && (
+          <Button
+            disabled={canView}
+            w={"full"}
+            mt={8}
+            // TODO: get dev main address
+            onClick={handleRequestPrivateProfileUnlock}
+          >
+            {canView ? "✔️ Information already unlocked" : primaryAction}
+          </Button>
+        )}
       </Box>
     </Box>
   );
