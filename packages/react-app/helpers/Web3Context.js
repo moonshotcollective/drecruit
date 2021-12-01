@@ -284,61 +284,6 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
           />
         </div>
       );
-    } else {
-      networkDisplay = (
-        <div style={{ zIndex: 10, position: "absolute", right: 0, top: 80, padding: 16 }}>
-          <Alert
-            message="⚠️ Wrong Network"
-            description={
-              <div>
-                You have <b>{networkSelected && networkSelected.name}</b> selected and you need to be on{" "}
-                <Button
-                  onClick={async () => {
-                    const ethereum = window.ethereum;
-                    const data = [
-                      {
-                        chainId: "0x" + targetNetwork.chainId.toString(16),
-                        chainName: targetNetwork.name,
-                        nativeCurrency: targetNetwork.nativeCurrency,
-                        rpcUrls: [targetNetwork.rpcUrl],
-                        blockExplorerUrls: [targetNetwork.blockExplorer],
-                      },
-                    ];
-                    console.log("data", data);
-
-                    let switchTx;
-                    // https://docs.metamask.io/guide/rpc-api.html#other-rpc-methods
-                    try {
-                      switchTx = await ethereum.request({
-                        method: "wallet_switchEthereumChain",
-                        params: [{ chainId: data[0].chainId }],
-                      });
-                    } catch (switchError) {
-                      // not checking specific error code, because maybe we're not using MetaMask
-                      try {
-                        switchTx = await ethereum.request({
-                          method: "wallet_addEthereumChain",
-                          params: data,
-                        });
-                      } catch (addError) {
-                        // handle "add" error
-                      }
-                    }
-
-                    if (switchTx) {
-                      console.log(switchTx);
-                    }
-                  }}
-                >
-                  <b>{networkLocal && networkLocal.name}</b>
-                </Button>
-              </div>
-            }
-            type="error"
-            closable={false}
-          />
-        </div>
-      );
     }
   } else {
     networkDisplay = (
@@ -354,36 +299,39 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     const signer = provider.getSigner();
     const account = await signer.getAddress();
     setInjectedProvider(provider);
-    const mySelf = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(provider.provider, account),
-      ceramic: CERAMIC_TESTNET,
-      connectNetwork: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
-    console.log("curr self", mySelf.id);
-    setSelf(mySelf);
 
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${account}`);
-    const signature = await provider.provider.request({
-      method: "personal_sign",
-      params: [data.message, account],
-    });
-    const verifyResponse = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/verify/${account}`,
-      {
-        signature,
-      },
-      {
-        withCredentials: true,
-      },
-    );
-    if (verifyResponse.status !== 200) {
-      throw new Error("Unauthorized");
+    if (rightNetwork) {
+      const mySelf = await SelfID.authenticate({
+        authProvider: new EthereumAuthProvider(provider.provider, account),
+        ceramic: CERAMIC_TESTNET,
+        connectNetwork: CERAMIC_TESTNET,
+        model: modelAliases,
+      });
+      console.log("curr self", mySelf.id);
+      setSelf(mySelf);
+
+      const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${account}`);
+      const signature = await provider.provider.request({
+        method: "personal_sign",
+        params: [data.message, account],
+      });
+      const verifyResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/verify/${account}`,
+        {
+          signature,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      if (verifyResponse.status !== 200) {
+        throw new Error("Unauthorized");
+      }
     }
 
     connection.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
-      setInjectedProvider(provider);
+      setInjectedProvider(new ethers.providers.Web3Provider(connection));
     });
 
     connection.on("accountsChanged", newAccounts => {
@@ -404,13 +352,13 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     connection.on("disconnect", (code, reason) => {
       logoutOfWeb3Modal();
     });
-  }, [setInjectedProvider]);
+  }, [setInjectedProvider, rightNetwork]);
 
   useEffect(() => {
     if (web3Modal && web3Modal.cachedProvider) {
       loadWeb3Modal();
     }
-  }, [web3Modal]);
+  }, [loadWeb3Modal]);
 
   let faucetHint = "";
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
