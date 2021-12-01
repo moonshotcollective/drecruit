@@ -26,6 +26,7 @@ import { useToast } from "@chakra-ui/react";
 import { NETWORKS } from "../../constants";
 
 import { Web3Context } from "../../helpers/Web3Context";
+import { abis } from "../../helpers/abi";
 
 function MediaCard({
   account,
@@ -48,6 +49,7 @@ function MediaCard({
 }) {
   const [decryptedData, setDecryptedData] = useState();
   const [canView, setCanView] = useState(false);
+  const context = useContext(Web3Context);
   useEffect(() => {
     let isValidRecipient = false;
     (async () => {
@@ -70,27 +72,55 @@ function MediaCard({
   const toast = useToast();
 
   const handleRequestPrivateProfileUnlock = async () => {
+    const stakeAmount = prompt("Enter stake amount in MATIC");
+    if (!stakeAmount) {
+      return alert("Please enter a valid stake amount");
+    }
+    const weiStakeAmount = ethers.utils.parseEther(stakeAmount);
     try {
-      const tx = await dRecruitContract.request(privateProfile.tokenId, {
-        value: ethers.utils.parseEther("0.01"),
+      // Request allowance
+      const dERC20Address = await dRecruitContract.token();
+      const signer = await context.injectedProvider.getSigner();
+      const dERC20Contract = new ethers.Contract(dERC20Address, abis.ERC20, signer);
+      const allowance = await dERC20Contract.allowance(context.address, dRecruitContract.address);
+      // Only ask for allowance if it is not enough
+      if (allowance < weiStakeAmount) {
+        await dERC20Contract.approve(dRecruitContract.address, weiStakeAmount);
+      }
+      const tx = await dRecruitContract.request(privateProfile.tokenId, weiStakeAmount, {
+        value: 0,
       });
       toast({
         title: "Request transaction sent",
-        description: <text>Your transaction was successfully sent <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
-        status: "success"
+        description: (
+          <text>
+            Your transaction was successfully sent{" "}
+            <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer">
+              <LinkIcon color="white" />
+            </a>
+          </text>
+        ),
+        status: "success",
       });
       const receipt = await tx.wait();
       toast({
         title: "Request transaction confirmed",
-        description: <text>Your transaction was confirmed <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer"><LinkIcon color="white" /></a></text>,
-        status: "success"
-      })
+        description: (
+          <text>
+            Your transaction was confirmed{" "}
+            <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer">
+              <LinkIcon color="white" />
+            </a>
+          </text>
+        ),
+        status: "success",
+      });
     } catch (err) {
       toast({
         title: "Request transaction failed",
         description: err.message + (err.data ? ` ${err.data.message}` : ""),
-        status: "error"
-      })
+        status: "error",
+      });
     }
     // const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
     //   withCredentials: true,
