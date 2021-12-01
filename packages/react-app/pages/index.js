@@ -34,7 +34,7 @@ import { ethers } from "ethers";
 
 import modelAliases from "../model.json";
 import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
-import { getDidFromTokenURI, loadDRecruitV1Contract } from "../helpers";
+import { getDidFromTokenURI, loadDRecruitV1Contract, loadTokenContract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
 import { HomeActions } from "../components/layout/HomeActions";
@@ -95,6 +95,7 @@ function Home() {
   // ... so that we aren't hitting our API rapidly.
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [dRecruitContract, setDRecruitContract] = useState();
+  const [tokenContract, setTokenContract] = useState();
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
@@ -122,8 +123,14 @@ function Home() {
       try {
         const signer = context.injectedProvider.getSigner();
         const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
+        const tokenAddress = await contract.token();
+        console.log({ tokenAddress });
+        const tokenContract = await loadTokenContract(tokenAddress, signer);
+        console.log({ tokenContract });
         setDRecruitContract(contract);
+        setTokenContract(tokenContract);
         const lastTokenId = await contract.tokenId();
+        console.log({ lastTokenId });
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
         const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
         const developersDID = [...new Set(tokenURIs.map(uri => getDidFromTokenURI(uri).did))];
@@ -140,6 +147,7 @@ function Home() {
         );
         setDeveloperProfiles(devProfiles);
       } catch (error) {
+        console.log({ error });
         setIsAlertOpen(true);
       }
     }
@@ -228,6 +236,7 @@ function Home() {
                   dRecruitContract={dRecruitContract}
                   hasWebAccount={!!webAccounts}
                   privateProfile={privateProfile}
+                  tokenContract={tokenContract}
                 />
               )
             );
@@ -274,6 +283,7 @@ function Home() {
                 dRecruitContract={dRecruitContract}
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
+                tokenContract={tokenContract}
               />
             )
           );
