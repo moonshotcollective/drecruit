@@ -95,11 +95,13 @@ function MediaCard({
       const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
       // Only ask for allowance if it is not enough
       if (allowance.lt(weiStakeAmount) || allowance.lt(ethers.utils.parseEther("0.1"))) {
-        await tokenContract.approve(dRecruitContract.address, weiStakeAmount);
+        const tx = await tokenContract.approve(dRecruitContract.address, weiStakeAmount);
+        await tx.wait();
       }
       const tx = await dRecruitContract.request(privateProfile.tokenId, weiStakeAmount, {
         value: 0,
       });
+      await tx.wait();
       toast({
         title: "Request transaction sent",
         description: (
