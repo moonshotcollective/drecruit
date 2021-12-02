@@ -87,7 +87,7 @@ function MediaCard({
 
   const handleRequestPrivateProfileUnlock = async () => {
     if (!stakeAmount || +stakeAmount < +"0.1") {
-      return toast({ title: "Please enter a valid stake amount. Minimum 0.1 MATIC.", status: "error" });
+      return toast({ title: "Please enter a valid stake amount. Minimum 0.1 tokens.", status: "error" });
     }
     const weiStakeAmount = ethers.utils.parseEther(stakeAmount);
     try {
@@ -96,12 +96,35 @@ function MediaCard({
       // Only ask for allowance if it is not enough
       if (allowance.lt(weiStakeAmount) || allowance.lt(ethers.utils.parseEther("0.1"))) {
         const tx = await tokenContract.approve(dRecruitContract.address, weiStakeAmount);
+        toast({
+          title: "Approval transaction sent",
+          description: (
+            <text>
+              Your transaction was successfully sent{" "}
+              <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer">
+                <LinkIcon color="white" />
+              </a>
+            </text>
+          ),
+          status: "success",
+        });
         await tx.wait();
+        toast({
+          title: "Approval transaction confirmed",
+          description: (
+            <text>
+              Your transaction was confirmed{" "}
+              <a href={`${NETWORKS.mumbai.blockExplorer}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer">
+                <LinkIcon color="white" />
+              </a>
+            </text>
+          ),
+          status: "success",
+        });
       }
       const tx = await dRecruitContract.request(privateProfile.tokenId, weiStakeAmount, {
         value: 0,
       });
-      await tx.wait();
       toast({
         title: "Request transaction sent",
         description: (
@@ -127,6 +150,7 @@ function MediaCard({
         ),
         status: "success",
       });
+      onClose();
     } catch (err) {
       toast({
         title: "Request transaction failed",
@@ -146,14 +170,14 @@ function MediaCard({
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Modal Title</ModalHeader>
+          <ModalHeader>Request unlock information</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormLabel htmlFor="stakeAmount">Enter stake amount in MATIC</FormLabel>
             <Input
               value={stakeAmount}
               onChange={e => setStakeAmount(e.target.value)}
-              placeholder="Minimum 0.1 MATIC"
+              placeholder="Minimum 0.1"
               borderColor="purple.500"
             />
           </ModalBody>
@@ -164,7 +188,6 @@ function MediaCard({
               marginRight={"auto"}
               colorScheme="blue"
               onClick={() => {
-                onClose();
                 handleRequestPrivateProfileUnlock();
               }}
             >
