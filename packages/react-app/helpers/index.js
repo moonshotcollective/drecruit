@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import DRecruiter from "../contracts/hardhat_contracts.json";
+import { abis } from "./abi";
 
 export { default as Transactor } from "./Transactor";
 
@@ -9,6 +10,11 @@ export const loadDRecruitV1Contract = async (targetNetwork, signer) => {
     DRecruiter[targetNetwork.chainId][targetNetwork.name].contracts.DRecruitV1.abi,
     signer,
   );
+  return contract;
+};
+
+export const loadTokenContract = async (address, signer) => {
+  const contract = new ethers.Contract(address, abis.ERC20, signer);
   return contract;
 };
 

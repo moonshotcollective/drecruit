@@ -18,7 +18,7 @@ export const HomeActions = ({ contract, mySelf }) => {
   };
   return (
     <Flex flexDirection="column" justifyContent="center" alignItems="center" w="full">
-      <Heading>Welcome to dRecruit!</Heading>
+      <Heading>Welcome to recruiter.party!</Heading>
       <HStack>
         <Button m="5" size="lg" colorScheme="purple" onClick={() => router.push("/profile/edit-profile")}>
           JOIN AS A BUILDER
