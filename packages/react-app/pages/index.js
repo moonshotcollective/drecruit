@@ -6,7 +6,8 @@ import {
   Code,
   HStack,
   InputGroup,
-  InputLeftElement,
+  InputLeftAddon,
+  Input,
   Box,
   Heading,
   SimpleGrid,
@@ -17,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  Container,
 } from "@chakra-ui/react";
 import { Web3Context } from "../helpers/Web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -28,7 +30,6 @@ import { fromString, toString } from "uint8arrays";
 import { DataModel } from "@glazed/datamodel";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
-import { Table, Modal, Form, Input, Divider, InputNumber, Select, Typography, Tag, Space, PageHeader } from "antd";
 import { randomBytes } from "@stablelib/random";
 import { ethers } from "ethers";
 
@@ -197,9 +198,25 @@ function Home() {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-      <HomeActions contract={dRecruitContract} mySelf={context.self} />
-      <Input type="search" placeholder="Search" onChange={e => setSearchTerm(e.target.value)} />
-      {isSearching && <div>Searching ...</div>}
+      <Container className="mainInput">
+        <HomeActions contract={dRecruitContract} mySelf={context.self} />
+
+      </Container>
+      <Container>
+      <div style={{ borderTop: "2px groove", padding: "20px", marginTop: "30px"}}>
+        <Heading size="md">Search for a Candidate:</Heading>
+        <InputGroup>
+
+        <Input
+          type="search"
+          placeholder="Search..."
+          borderColor="purple.500"
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+        </InputGroup>
+        {isSearching && <div>Searching ...</div>}
+        </div>
+        </Container>
       <Heading>Found developers:</Heading>
       <SimpleGrid columns={4} spacing={10}>
         {isMatch &&
