@@ -96,6 +96,7 @@ function Home() {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [dRecruitContract, setDRecruitContract] = useState();
   const [tokenContract, setTokenContract] = useState();
+  const [tokenMetadata, setTokenMetadata] = useState({ name: null, symbol: null });
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
@@ -124,13 +125,13 @@ function Home() {
         const signer = context.injectedProvider.getSigner();
         const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
         const tokenAddress = await contract.token();
-        console.log({ tokenAddress });
         const tokenContract = await loadTokenContract(tokenAddress, signer);
-        console.log({ tokenContract });
         setDRecruitContract(contract);
         setTokenContract(tokenContract);
+        const tokenName = await tokenContract.name();
+        const tokenSymbol = await tokenContract.symbol();
+        setTokenMetadata({ name: tokenName, symbol: tokenSymbol });
         const lastTokenId = await contract.tokenId();
-        console.log({ lastTokenId });
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
         const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
         const developersDID = [...new Set(tokenURIs.map(uri => getDidFromTokenURI(uri).did))];
@@ -237,6 +238,7 @@ function Home() {
                   hasWebAccount={!!webAccounts}
                   privateProfile={privateProfile}
                   tokenContract={tokenContract}
+                  tokenMetadata={tokenMetadata}
                 />
               )
             );
@@ -284,6 +286,7 @@ function Home() {
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
                 tokenContract={tokenContract}
+                tokenMetadata={tokenMetadata}
               />
             )
           );
