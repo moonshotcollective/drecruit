@@ -218,6 +218,7 @@ function Home() {
               privateProfile && (
                 <MediaCard
                   key={did}
+                  did={did}
                   account={account}
                   avatarSrc={formattedAvatar}
                   coverSrc={formattedBg}
@@ -232,8 +233,6 @@ function Home() {
                   }`}
                   description={basicProfile.description}
                   date={`Birthdate: ${basicProfile.birthDate}`}
-                  primaryAction="Request contact information"
-                  secondaryAction="View contact information"
                   dRecruitContract={dRecruitContract}
                   hasWebAccount={!!webAccounts}
                   privateProfile={privateProfile}
@@ -266,6 +265,7 @@ function Home() {
             privateProfile && (
               <MediaCard
                 key={did}
+                did={did}
                 account={account}
                 avatarSrc={formattedAvatar}
                 coverSrc={formattedBg}
@@ -280,8 +280,6 @@ function Home() {
                 }`}
                 description={basicProfile.description}
                 date={`Birthdate: ${basicProfile.birthDate}`}
-                primaryAction="Request contact information"
-                secondaryAction="View contact information"
                 dRecruitContract={dRecruitContract}
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
