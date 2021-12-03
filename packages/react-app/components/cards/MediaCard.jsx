@@ -66,7 +66,7 @@ function MediaCard({
   const debouncedStakeAmount = useDebounce(stakeAmount, 500);
   const [approvalState, setApprovalState] = useState(); // ENOUGH || NOT_ENOUGH || LOADING
   const [currAllowance, setCurrAllowance] = useState();
-  const [unlimitedAllowanceWanted, setUnlimitedAllowanceWanted] = useState(false);
+  const [unlimitedAllowanceWanted, setUnlimitedAllowanceWanted] = useState(true);
   const context = useContext(Web3Context);
 
   const toast = useToast();
@@ -222,11 +222,12 @@ function MediaCard({
 
               {currAllowance && currAllowance.lt(ethers.constants.MaxUint256) && (
                 <HStack>
-                  <FormLabel htmlFor="unlimitedAllowanceWanted">Approve unlimited allowance?</FormLabel>
-                  <Checkbox
+                  <Checkbox defaultIsChecked
                     value={unlimitedAllowanceWanted}
                     onChange={e => setUnlimitedAllowanceWanted(e.target.checked)}
-                  />
+                  >
+                    Approve with unlimited allowance?
+                  </Checkbox>
                 </HStack>
               )}
             </VStack>
@@ -234,8 +235,7 @@ function MediaCard({
 
           <ModalFooter>
             <Button
-              marginLeft={0}
-              marginRight={"auto"}
+              width="100%"
               colorScheme="blue"
               onClick={() => {
                 handleRequestPrivateProfileUnlock();
