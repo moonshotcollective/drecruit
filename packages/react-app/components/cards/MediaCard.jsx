@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useColorModeValue } from "@chakra-ui/color-mode";
-import { Box, Flex, Stack, Heading, Code, HStack } from "@chakra-ui/layout";
+import { Box, Flex, Stack, Heading, Code, HStack, VStack } from "@chakra-ui/layout";
 import {
   Avatar,
   Popover,
@@ -26,6 +26,7 @@ import {
   ModalFooter,
   FormLabel,
   Input,
+  Checkbox,
 } from "@chakra-ui/react";
 import { Icon, EmailIcon, InfoIcon, PhoneIcon, LinkIcon } from "@chakra-ui/icons";
 import { BsFillPersonLinesFill } from "react-icons/bs";
@@ -36,7 +37,7 @@ import Blockies from "react-blockies";
 import { NETWORKS } from "../../constants";
 
 import { Web3Context } from "../../helpers/Web3Context";
-import { abis } from "../../helpers/abi";
+import { useDebounce } from "../../hooks";
 
 function MediaCard({
   account,
@@ -57,11 +58,21 @@ function MediaCard({
   privateProfile,
   dRecruitContract,
   tokenContract,
+  tokenMetadata,
 }) {
   const [decryptedData, setDecryptedData] = useState();
   const [canView, setCanView] = useState(false);
   const [stakeAmount, setStakeAmount] = useState();
+  const debouncedStakeAmount = useDebounce(stakeAmount, 500);
+  const [approvalState, setApprovalState] = useState(); // ENOUGH || NOT_ENOUGH || LOADING
+  const [currAllowance, setCurrAllowance] = useState();
+  const [unlimitedAllowanceWanted, setUnlimitedAllowanceWanted] = useState(true);
   const context = useContext(Web3Context);
+
+  const toast = useToast();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   useEffect(() => {
     let isValidRecipient = false;
     (async () => {
@@ -81,21 +92,18 @@ function MediaCard({
     })();
   }, [privateProfile]);
 
-  const toast = useToast();
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
   const handleRequestPrivateProfileUnlock = async () => {
     if (!stakeAmount || +stakeAmount < +"0.1") {
       return toast({ title: "Please enter a valid stake amount. Minimum 0.1 tokens.", status: "error" });
     }
     const weiStakeAmount = ethers.utils.parseEther(stakeAmount);
     try {
-      // Request allowance
-      const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
       // Only ask for allowance if it is not enough
-      if (allowance.lt(weiStakeAmount) || allowance.lt(ethers.utils.parseEther("0.1"))) {
-        const tx = await tokenContract.approve(dRecruitContract.address, weiStakeAmount);
+      if (approvalState === "NOT_ENOUGH") {
+        const tx = await tokenContract.approve(
+          dRecruitContract.address,
+          unlimitedAllowanceWanted ? ethers.constants.MaxUint256.toString() : weiStakeAmount,
+        );
         toast({
           title: "Approval transaction sent",
           description: (
@@ -165,6 +173,36 @@ function MediaCard({
     // return data;
   };
 
+  useEffect(() => {
+    async function exec() {
+      const weiStakeAmount = ethers.utils.parseEther(debouncedStakeAmount);
+      const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
+      if (allowance.lt(weiStakeAmount)) {
+        setApprovalState("NOT_ENOUGH");
+      } else {
+        setApprovalState("ENOUGH");
+      }
+    }
+    if (debouncedStakeAmount) {
+      setApprovalState("LOADING");
+      exec();
+    }
+  }, [isOpen, debouncedStakeAmount]);
+
+  useEffect(() => {
+    if (unlimitedAllowanceWanted) {
+      setApprovalState("NOT_ENOUGH");
+    }
+  }, [unlimitedAllowanceWanted]);
+
+  useEffect(() => {
+    async function exec() {
+      const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
+      setCurrAllowance(allowance);
+    }
+    exec();
+  }, [isOpen]);
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -173,25 +211,43 @@ function MediaCard({
           <ModalHeader>Request unlock information</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <FormLabel htmlFor="stakeAmount">Enter stake amount in MATIC</FormLabel>
-            <Input
-              value={stakeAmount}
-              onChange={e => setStakeAmount(e.target.value)}
-              placeholder="Minimum 0.1"
-              borderColor="purple.500"
-            />
+            <VStack justifyItems="left">
+              <FormLabel htmlFor="stakeAmount">Enter stake amount in {tokenMetadata && tokenMetadata.symbol}</FormLabel>
+              <Input
+                value={stakeAmount}
+                onChange={e => setStakeAmount(e.target.value)}
+                placeholder="Minimum 0.1"
+                borderColor="purple.500"
+              />
+
+              {currAllowance && currAllowance.lt(ethers.constants.MaxUint256) && (
+                <HStack>
+                  <Checkbox defaultIsChecked
+                    value={unlimitedAllowanceWanted}
+                    onChange={e => setUnlimitedAllowanceWanted(e.target.checked)}
+                  >
+                    Approve with unlimited allowance?
+                  </Checkbox>
+                </HStack>
+              )}
+            </VStack>
           </ModalBody>
 
           <ModalFooter>
             <Button
-              marginLeft={0}
-              marginRight={"auto"}
+              width="100%"
               colorScheme="blue"
               onClick={() => {
                 handleRequestPrivateProfileUnlock();
               }}
+              disabled={!approvalState || approvalState === "LOADING"}
+              isLoading={approvalState === "LOADING"}
             >
-              Submit
+              {!approvalState || approvalState === "LOADING"
+                ? "Enter amount"
+                : approvalState === "ENOUGH"
+                ? "Confirm"
+                : "Approve"}
             </Button>
           </ModalFooter>
         </ModalContent>
