@@ -71,7 +71,7 @@ function Home() {
     if (context.localProvider) {
       try {
         const contract = context.readContracts.DRecruitV1;
-        if (rightNetwork && context.injectedProvider && context.injectedProvider.getSigner()) {
+        if (context.rightNetwork && context.injectedProvider && context.injectedProvider.getSigner()) {
           const signer = context.injectedProvider.getSigner();
           const tokenAddress = await contract.token();
           console.log({ tokenAddress });
