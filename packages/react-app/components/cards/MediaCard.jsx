@@ -57,6 +57,7 @@ function MediaCard({
   privateProfile,
   dRecruitContract,
   tokenContract,
+  tokenMetadata,
 }) {
   const [decryptedData, setDecryptedData] = useState();
   const [canView, setCanView] = useState(false);
@@ -173,7 +174,7 @@ function MediaCard({
           <ModalHeader>Request unlock information</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <FormLabel htmlFor="stakeAmount">Enter stake amount in MATIC</FormLabel>
+            <FormLabel htmlFor="stakeAmount">Enter stake amount in {tokenMetadata && tokenMetadata.symbol}</FormLabel>
             <Input
               value={stakeAmount}
               onChange={e => setStakeAmount(e.target.value)}
