@@ -71,6 +71,10 @@ function Home() {
     if (context.localProvider) {
       try {
         const contract = context.readContracts.DRecruitV1;
+        if (!contract) {
+          console.log("Contract DRecruitV1 not loaded yet");
+          return;
+        }
         if (context.rightNetwork && context.injectedProvider && context.injectedProvider.getSigner()) {
           const signer = context.injectedProvider.getSigner();
           const tokenAddress = await contract.token();
@@ -123,7 +127,7 @@ function Home() {
 
   useEffect(() => {
     init();
-  }, [context.injectedProvider]);
+  }, [context.readContracts.DRecruitV1, context.injectedProvider]);
 
   return (
     <Layout>
