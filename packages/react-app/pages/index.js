@@ -45,6 +45,7 @@ function Home() {
   // ... so that we aren't hitting our API rapidly.
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [tokenContract, setTokenContract] = useState();
+  const [tokenMetadata, setTokenMetadata] = useState({ name: null, symbol: null });
   const [store, setStore] = useState();
   const [prevNote, setPrevNote] = useState("");
 
@@ -78,17 +79,24 @@ function Home() {
         if (context.rightNetwork && context.injectedProvider && context.injectedProvider.getSigner()) {
           const signer = context.injectedProvider.getSigner();
           const tokenAddress = await contract.token();
-          console.log({ tokenAddress });
           const tokenContract = await loadTokenContract(tokenAddress, signer);
-          console.log({ tokenContract });
           setTokenContract(tokenContract);
+          const tokenName = await tokenContract.name();
+          const tokenSymbol = await tokenContract.symbol();
+          setTokenMetadata({ name: tokenName, symbol: tokenSymbol });
         }
         const lastTokenId = await contract.tokenId();
-        console.log({ lastTokenId });
+        console.log("LLLLLlastTokenId: ", lastTokenId);
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
         const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
+        console.log("LLLLLtokenURIs: ", tokenURIs);
         const developersDID = [...new Set(tokenURIs.map(uri => getDidFromTokenURI(uri).did))];
+        console.log("LLLLLdevelopersDID: ", developersDID);
         const core = ceramicCoreFactory();
+        const basicProfile1 = await core.get("basicProfile", developersDID[0]);
+        console.log("LLLLLLbasicProfile1: ", basicProfile1);
+        const publicProfile1 = await core.get("publicProfile", developersDID[0]);
+        console.log("LLLLLLpublicProfile1: ", publicProfile1);
         const devProfiles = await Promise.all(
           developersDID.map(async did => ({
             did,
@@ -99,6 +107,7 @@ function Home() {
             privateProfile: await core.get("privateProfile", did),
           })),
         );
+        console.log("devProfiles: ", devProfiles);
         setDeveloperProfiles(devProfiles);
       } catch (error) {
         console.log({ error });
@@ -170,6 +179,7 @@ function Home() {
                   hasWebAccount={!!webAccounts}
                   privateProfile={privateProfile}
                   tokenContract={tokenContract}
+                  tokenMetadata={tokenMetadata}
                 />
               )
             );
@@ -192,6 +202,7 @@ function Home() {
             ? IPFS_GATEWAY + basicProfile.background.original.src.split("//")[1]
             : undefined;
           const account = Object.keys(cryptoAccounts)[0].split("@")[0];
+          console.log("MEDIA: ", did, publicProfile, privateProfile);
           return (
             publicProfile &&
             privateProfile && (
@@ -216,6 +227,7 @@ function Home() {
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
                 tokenContract={tokenContract}
+                tokenMetadata={tokenMetadata}
               />
             )
           );
