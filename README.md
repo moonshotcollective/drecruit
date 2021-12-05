@@ -10,40 +10,47 @@ Current recruiting sites like LinkedIn and Indeed often use candidates resumé d
 
 Prerequisites: [Node](https://nodejs.org/en/download/) plus [Yarn](https://classic.yarnpkg.com/en/docs/install/) and [Git](https://git-scm.com/downloads)
 
-```bash
-  cd packages/react-app
-```
-
-1. **Copy-paste all .env.example files into a new file called `.env`.**
-2. **Go to https://web3.storage and set the value of WEB3STORAGE_TOKEN with your web3.storage API key.**
-
 > clone/fork 🏗 drecruit:
-
 ```bash
-  https://github.com/moonshotcollective/drecruit.git
+git clone https://github.com/moonshotcollective/drecruit.git
 ```
 
-> install and start your 👷‍ Hardhat chain:
-
+> install dependencies
 ```bash
 cd drecruit
 yarn install
+```
+
+> add .env in `packages/react-app`
+1. **Copy-paste all .env.example files into a new file called `.env`.**
+2. **Go to https://web3.storage and set the value of WEB3STORAGE_TOKEN with your web3.storage API key.**
+```bash
+cd packages/react-app
+cp .env.example .env
+```
+
+> start your 👷‍ Hardhat chain:
+
+```bash
+cd drecruit
 yarn ceramic
 yarn chain
 ```
 
-> in a second terminal window, 🛰 deploy your contract, install and run the backend:
+> in a second terminal window, 🛰 deploy your contract
 
 ```bash
 cd drecruit
 yarn deploy --network localhost --reset
 ```
 
-Copy the contract address of the deployed contract and paste it in the .env in packages/backend for the CONTRACT_ADDRESS variable
+> run the backend
+1. Copy-paste all .env.example files into a new file called `.env`.
+2. Copy the contract address of the deployed contract (you can find it in the terminal screen output from the last step) and paste it in the .env in packages/backend for the CONTRACT_ADDRESS variable.
 
 ```bash
 cd packages/backend
-yarn install
+cp .env.example .env
 yarn dev
 ```
 
