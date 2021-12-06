@@ -1,8 +1,5 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { NextApiRequest, NextApiResponse } from "next";
-import multiparty from "multiparty";
 import { Web3Storage, File, Blob } from "web3.storage";
-import * as fs from "fs";
 
 function getWeb3Token() {
   const token = process.env.WEB3STORAGE_TOKEN;

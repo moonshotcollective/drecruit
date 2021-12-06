@@ -6,7 +6,6 @@ import {
   Divider,
   Input,
   Stack,
-  Image,
   Textarea,
   Tag,
   TagLabel,
@@ -14,24 +13,16 @@ import {
   TagCloseButton,
   Box,
   HStack,
-  IconButton,
 } from "@chakra-ui/react";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { useRouter } from "next/router";
 
-import modelAliases from "../../model.json";
-import { ceramicCoreFactory, CERAMIC_TESTNET, CERAMIC_TESTNET_NODE_URL } from "../../ceramic";
 import { Web3Context } from "../../helpers/Web3Context";
 
 const EditPublicProfilePage = () => {
-  const { address, targetNetwork, self } = useContext(Web3Context);
+  const { self } = useContext(Web3Context);
   const router = useRouter();
-  const [imageURL, setImageURL] = useState();
-  const [backgroundURL, setBackgroundURL] = useState();
-  const image = useRef(null);
-  const background = useRef(null);
   const {
     handleSubmit,
     register,
@@ -94,7 +85,7 @@ const EditPublicProfilePage = () => {
       skillTags,
       experiences,
     });
-    const me = await self.client.dataStore.get("publicProfile");
+    await self.client.dataStore.get("publicProfile");
     return router.push("/");
   };
   return (

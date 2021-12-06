@@ -1,10 +1,8 @@
 import { Badge, Spacer, Box, Center, Heading, Link, SimpleGrid, Stack, Text } from "@chakra-ui/layout";
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { EthereumAuthProvider, SelfID, WebClient } from "@self.id/web";
 import { getSlicedAddress, loadDRecruitV1Contract } from "../../../helpers";
 
-import { ceramicCoreFactory, CERAMIC_TESTNET } from "../../../ceramic";
-import modelAliases from "../../../model.json";
+import { ceramicCoreFactory } from "../../../ceramic";
 import { LinkIcon } from "@chakra-ui/icons";
 import { Button } from "@chakra-ui/button";
 import { Avatar } from "@chakra-ui/avatar";
@@ -20,7 +18,6 @@ function ApproveShareContactInformation() {
   const context = useContext(Web3Context);
   const [contract, setContract] = useState();
   const [requesters, setRequesters] = useState();
-  const [accessRequests, setAccessRequests] = useState();
   const [myPrivateProfile, setMyPrivateProfile] = useState();
   const [recruiters, setRecruiters] = useState([]);
 
@@ -33,7 +30,6 @@ function ApproveShareContactInformation() {
         context.injectedProvider.getSigner(),
       );
       setContract(dRecruitV1Contract);
-      const addresses = await window.ethereum.enable();
       const privateProfile = await context.self.get("privateProfile");
       if (!privateProfile) {
         return;
@@ -94,7 +90,7 @@ function ApproveShareContactInformation() {
           ),
           status: "success",
         });
-        const receipt = await tx.wait();
+        await tx.wait();
         toast({
           title: "Approval transaction confirmed",
           description: (

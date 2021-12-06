@@ -19,7 +19,7 @@ export const loadTokenContract = async (address, signer) => {
 };
 
 export const getDidFromTokenURI = tokenURI => {
-  const [ipfsWithColon, _, cid, didFilename] = tokenURI.split("/");
+  const [, , cid, didFilename] = tokenURI.split("/");
   const [did] = didFilename.split(".json");
   return {
     did,

@@ -45,7 +45,6 @@ const makeCall = async (callName, contract, args, metadata = {}) => {
     return result;
   }
   return undefined;
-  console.log("no call of that name!");
 };
 
 const defaultToken = "ETH";
