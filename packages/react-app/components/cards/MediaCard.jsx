@@ -1,20 +1,13 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useColorModeValue } from "@chakra-ui/color-mode";
-import { Box, Flex, Stack, Heading, Code, HStack, VStack } from "@chakra-ui/layout";
+import { Box, Flex, Stack, Heading, HStack, VStack } from "@chakra-ui/layout";
 import {
   Avatar,
-  Popover,
-  PopoverTrigger,
   Image,
   Button,
   Text,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverHeader,
   Tag,
   TagLabel,
-  SimpleGrid,
   useToast,
   useDisclosure,
   Modal,
@@ -28,7 +21,7 @@ import {
   Input,
   Checkbox,
 } from "@chakra-ui/react";
-import { Icon, EmailIcon, InfoIcon, PhoneIcon, LinkIcon } from "@chakra-ui/icons";
+import { Icon, EmailIcon, PhoneIcon, LinkIcon } from "@chakra-ui/icons";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { GrLocation } from "react-icons/gr";
 import { ethers } from "ethers";
@@ -51,10 +44,7 @@ function MediaCard({
   twitter,
   hasWebAccount,
   github,
-  primaryActionOnClick,
   primaryAction,
-  secondaryActionOnClick,
-  secondaryAction,
   privateProfile,
   dRecruitContract,
   tokenContract,
@@ -74,7 +64,6 @@ function MediaCard({
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
-    let isValidRecipient = false;
     (async () => {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/unlock/${privateProfile.tokenId}`, {
@@ -145,7 +134,7 @@ function MediaCard({
         ),
         status: "success",
       });
-      const receipt = await tx.wait();
+      await tx.wait();
       toast({
         title: "Request transaction confirmed",
         description: (
@@ -222,7 +211,8 @@ function MediaCard({
 
               {currAllowance && currAllowance.lt(ethers.constants.MaxUint256) && (
                 <HStack>
-                  <Checkbox defaultIsChecked
+                  <Checkbox
+                    defaultIsChecked
                     value={unlimitedAllowanceWanted}
                     onChange={e => setUnlimitedAllowanceWanted(e.target.checked)}
                   >

@@ -13,7 +13,7 @@ import {
 import { Web3Context } from "../helpers/Web3Context";
 import { Input } from "antd";
 
-import { ceramicCoreFactory, CERAMIC_TESTNET } from "../ceramic";
+import { ceramicCoreFactory } from "../ceramic";
 import { getDidFromTokenURI, loadDRecruitV1Contract, loadTokenContract } from "../helpers";
 import MediaCard from "../components/cards/MediaCard";
 import { Layout } from "../components/layout/Layout";
@@ -76,8 +76,6 @@ function Home() {
   const [dRecruitContract, setDRecruitContract] = useState();
   const [tokenContract, setTokenContract] = useState();
   const [tokenMetadata, setTokenMetadata] = useState({ name: null, symbol: null });
-  const [store, setStore] = useState();
-  const [prevNote, setPrevNote] = useState("");
 
   // Effect for API call
   useEffect(

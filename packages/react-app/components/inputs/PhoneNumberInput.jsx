@@ -4,7 +4,7 @@ import Flag from "react-world-flags";
 import { AsYouType } from "libphonenumber-js";
 import { getCountryTelCode } from "../../helpers/countries";
 
-export default function PhoneNumberInput({ size, value, country, options, onChange, setValue, placeholder, ...rest }) {
+export default function PhoneNumberInput({ size, value, country, options, onChange, placeholder, ...rest }) {
   let [number, setNumber] = useState(value || "");
   let [selectedCountry, setSelectedCountry] = useState(country || "");
   let [countryCode, setCountryCode] = useState(getCountryTelCode(country) || "");

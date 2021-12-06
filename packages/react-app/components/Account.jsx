@@ -55,7 +55,7 @@ export default function Account({
 }) {
   const handleLogout = async () => {
     try {
-      const result = await axios(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+      await axios(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
         method: "post",
         withCredentials: true
     });

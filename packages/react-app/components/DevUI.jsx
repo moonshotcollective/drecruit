@@ -1,7 +1,5 @@
 import React from "react";
-import { Row, Col, Button } from "antd";
-import { Account, Ramp, GasGauge, Faucet, ThemeSwitch } from ".";
-import { NETWORKS } from "../constants";
+import { Account, ThemeSwitch } from ".";
 import { Web3Consumer } from "../helpers/Web3Context";
 
 function DevUI({ web3 }) {
