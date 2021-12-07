@@ -154,7 +154,7 @@ function Home() {
             const formattedBg = basicProfile.background
               ? IPFS_GATEWAY + basicProfile.background.original.src.split("//")[1]
               : undefined;
-            const account = Object.keys(cryptoAccounts)[0].split("@")[0];
+            const account = Object.keys(cryptoAccounts)[0]?.split("@")[0];
             return (
               publicProfile &&
               privateProfile && (
@@ -201,8 +201,7 @@ function Home() {
           const formattedBg = basicProfile.background
             ? IPFS_GATEWAY + basicProfile.background.original.src.split("//")[1]
             : undefined;
-          const account = Object.keys(cryptoAccounts)[0].split("@")[0];
-          console.log("MEDIA: ", did, publicProfile, privateProfile);
+          const account = Object.keys(cryptoAccounts)[0]?.split("@")[0];
           return (
             publicProfile &&
             privateProfile && (
