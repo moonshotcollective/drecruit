@@ -1,23 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Core } from "@self.id/core";
 import axios from "axios";
-import {
-  Button,
-  Code,
-  HStack,
-  InputGroup,
-  InputLeftElement,
-  Box,
-  Heading,
-  SimpleGrid,
-  VStack,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-} from "@chakra-ui/react";
+import { Button, Code, HStack, InputGroup, InputLeftElement, Box, Heading, SimpleGrid, VStack } from "@chakra-ui/react";
 import { Web3Context } from "../helpers/Web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ModelManager } from "@glazed/devtools";
@@ -44,40 +28,6 @@ import { IPFS_GATEWAY } from "../constants";
 
 function Home() {
   const context = useContext(Web3Context);
-  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
-  const onAlertClose = async () => {
-    const data = [
-      {
-        chainId: "0x" + context.targetNetwork.chainId.toString(16),
-        chainName: context.targetNetwork.name,
-        nativeCurrency: context.targetNetwork.nativeCurrency,
-        rpcUrls: [context.targetNetwork.rpcUrl],
-        blockExplorerUrls: [context.targetNetwork.blockExplorer],
-      },
-    ];
-    try {
-      await ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: data[0].chainId }],
-      });
-      setIsAlertOpen(false);
-    } catch (switchError) {
-      // This error code indicates that the chain has not been added to MetaMask.
-      if (switchError.code === 4902) {
-        try {
-          await ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: data,
-          });
-          setIsAlertOpen(false);
-        } catch (addError) {
-          console.log(addError);
-        }
-      }
-      // handle other "switch" errors
-    }
-  };
-  const cancelRef = React.useRef();
   const [inputEmail, setInputEmail] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [developerProfiles, setDeveloperProfiles] = useState([]);
@@ -94,7 +44,6 @@ function Home() {
   // The goal is to only have the API call fire when user stops typing ...
   // ... so that we aren't hitting our API rapidly.
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const [dRecruitContract, setDRecruitContract] = useState();
   const [tokenContract, setTokenContract] = useState();
   const [tokenMetadata, setTokenMetadata] = useState({ name: null, symbol: null });
   const [store, setStore] = useState();
@@ -120,22 +69,34 @@ function Home() {
   );
 
   const init = async () => {
-    if (context.injectedProvider && context.injectedProvider.getSigner()) {
+    if (context.localProvider) {
       try {
-        const signer = context.injectedProvider.getSigner();
-        const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
-        const tokenAddress = await contract.token();
-        const tokenContract = await loadTokenContract(tokenAddress, signer);
-        setDRecruitContract(contract);
-        setTokenContract(tokenContract);
-        const tokenName = await tokenContract.name();
-        const tokenSymbol = await tokenContract.symbol();
-        setTokenMetadata({ name: tokenName, symbol: tokenSymbol });
+        const contract = context.readContracts.DRecruitV1;
+        if (!contract) {
+          console.log("Contract DRecruitV1 not loaded yet");
+          return;
+        }
+        if (context.rightNetwork && context.injectedProvider && context.injectedProvider.getSigner()) {
+          const signer = context.injectedProvider.getSigner();
+          const tokenAddress = await contract.token();
+          const tokenContract = await loadTokenContract(tokenAddress, signer);
+          setTokenContract(tokenContract);
+          const tokenName = await tokenContract.name();
+          const tokenSymbol = await tokenContract.symbol();
+          setTokenMetadata({ name: tokenName, symbol: tokenSymbol });
+        }
         const lastTokenId = await contract.tokenId();
+        console.log("LLLLLlastTokenId: ", lastTokenId);
         const tokenIds = [...Array(parseInt(lastTokenId, 10)).keys()];
         const tokenURIs = await Promise.all(tokenIds.map(async id => contract.uri(id)));
+        console.log("LLLLLtokenURIs: ", tokenURIs);
         const developersDID = [...new Set(tokenURIs.map(uri => getDidFromTokenURI(uri).did))];
+        console.log("LLLLLdevelopersDID: ", developersDID);
         const core = ceramicCoreFactory();
+        const basicProfile1 = await core.get("basicProfile", developersDID[0]);
+        console.log("LLLLLLbasicProfile1: ", basicProfile1);
+        const publicProfile1 = await core.get("publicProfile", developersDID[0]);
+        console.log("LLLLLLpublicProfile1: ", publicProfile1);
         const devProfiles = await Promise.all(
           developersDID.map(async did => ({
             did,
@@ -146,10 +107,10 @@ function Home() {
             privateProfile: await core.get("privateProfile", did),
           })),
         );
+        console.log("devProfiles: ", devProfiles);
         setDeveloperProfiles(devProfiles);
       } catch (error) {
         console.log({ error });
-        setIsAlertOpen(true);
       }
     }
   };
@@ -175,30 +136,11 @@ function Home() {
 
   useEffect(() => {
     init();
-  }, [context.injectedProvider]);
+  }, [context.readContracts.DRecruitV1, context.injectedProvider]);
 
   return (
     <Layout>
-      <AlertDialog isOpen={isAlertOpen} leastDestructiveRef={cancelRef}>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Switch network
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              To use this app you must switch to the {context.targetNetwork.name} network.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onAlertClose} colorScheme="blue">
-                Switch
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-      <HomeActions contract={dRecruitContract} mySelf={context.self} />
+      <HomeActions contract={context.writeContracts.DRecruitV1} mySelf={context.self} />
       <Input type="search" placeholder="Search" onChange={e => setSearchTerm(e.target.value)} />
       {isSearching && <div>Searching ...</div>}
       <Heading>Found developers:</Heading>
@@ -234,7 +176,6 @@ function Home() {
                   date={`Birthdate: ${basicProfile.birthDate}`}
                   primaryAction="Request contact information"
                   secondaryAction="View contact information"
-                  dRecruitContract={dRecruitContract}
                   hasWebAccount={!!webAccounts}
                   privateProfile={privateProfile}
                   tokenContract={tokenContract}
@@ -282,7 +223,6 @@ function Home() {
                 date={`Birthdate: ${basicProfile.birthDate}`}
                 primaryAction="Request contact information"
                 secondaryAction="View contact information"
-                dRecruitContract={dRecruitContract}
                 hasWebAccount={!!webAccounts}
                 privateProfile={privateProfile}
                 tokenContract={tokenContract}

@@ -56,7 +56,6 @@ function MediaCard({
   secondaryActionOnClick,
   secondaryAction,
   privateProfile,
-  dRecruitContract,
   tokenContract,
   tokenMetadata,
 }) {
@@ -68,6 +67,7 @@ function MediaCard({
   const [currAllowance, setCurrAllowance] = useState();
   const [unlimitedAllowanceWanted, setUnlimitedAllowanceWanted] = useState(true);
   const context = useContext(Web3Context);
+  const dRecruitContract = context.writeContracts.DRecruitV1;
 
   const toast = useToast();
 
@@ -175,12 +175,14 @@ function MediaCard({
 
   useEffect(() => {
     async function exec() {
-      const weiStakeAmount = ethers.utils.parseEther(debouncedStakeAmount);
-      const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
-      if (allowance.lt(weiStakeAmount)) {
-        setApprovalState("NOT_ENOUGH");
-      } else {
-        setApprovalState("ENOUGH");
+      if (context.rightNetwork) {
+        const weiStakeAmount = ethers.utils.parseEther(debouncedStakeAmount);
+        const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
+        if (allowance.lt(weiStakeAmount)) {
+          setApprovalState("NOT_ENOUGH");
+        } else {
+          setApprovalState("ENOUGH");
+        }
       }
     }
     if (debouncedStakeAmount) {
@@ -197,8 +199,10 @@ function MediaCard({
 
   useEffect(() => {
     async function exec() {
-      const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
-      setCurrAllowance(allowance);
+      if (context.rightNetwork) {
+        const allowance = await tokenContract.allowance(context.address, dRecruitContract.address);
+        setCurrAllowance(allowance);
+      }
     }
     exec();
   }, [isOpen]);
@@ -345,15 +349,17 @@ function MediaCard({
               </Stack>
             </Box>
           )}
-          <Button
-            disabled={canView}
-            w={"full"}
-            mt={8}
-            // TODO: get dev main address
-            onClick={onOpen}
-          >
-            {canView ? "✔️ Information already unlocked" : primaryAction}
-          </Button>
+          {context.rightNetwork && (
+            <Button
+              disabled={canView}
+              w={"full"}
+              mt={8}
+              // TODO: get dev main address
+              onClick={onOpen}
+            >
+              {canView ? "✔️ Information already unlocked" : primaryAction}
+            </Button>
+          )}
         </Box>
       </Box>
     </>

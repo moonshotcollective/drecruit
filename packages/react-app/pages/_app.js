@@ -3,10 +3,11 @@ import "antd/dist/antd.css";
 import Head from "next/head";
 import Link from "next/link";
 import { ChakraProvider } from "@chakra-ui/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { ThemeSwitcherProvider } from "react-css-theme-switcher";
 import { Header } from "../components";
 import DevUI from "../components/DevUI";
+import WrongNetworkAlertDialog from "../components/WrongNetworkAlertDialog";
 import { Web3Provider } from "../helpers/Web3Context";
 import "../styles/index.css";
 
@@ -59,6 +60,7 @@ function MyApp({ Component, pageProps }) {
               </Menu.Item>
             </Menu>
             <DevUI />
+            <WrongNetworkAlertDialog />
             <Component {...pageProps} />
           </>
         </ThemeSwitcherProvider>

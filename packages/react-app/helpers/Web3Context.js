@@ -188,6 +188,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
   const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
   const selectedChainId =
     userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
+  const rightNetwork = localChainId == selectedChainId;
 
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
 
@@ -268,7 +269,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div style={{ zIndex: 10, position: "absolute", right: 0, top: 80, padding: 16 }}>
           <Alert
             message="⚠️ Wrong Network ID"
             description={
@@ -298,36 +299,39 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     const signer = provider.getSigner();
     const account = await signer.getAddress();
     setInjectedProvider(provider);
-    const mySelf = await SelfID.authenticate({
-      authProvider: new EthereumAuthProvider(provider.provider, account),
-      ceramic: CERAMIC_TESTNET,
-      connectNetwork: CERAMIC_TESTNET,
-      model: modelAliases,
-    });
-    console.log("curr self", mySelf.id);
-    setSelf(mySelf);
 
-    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${account}`);
-    const signature = await provider.provider.request({
-      method: "personal_sign",
-      params: [data.message, account],
-    });
-    const verifyResponse = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/verify/${account}`,
-      {
-        signature,
-      },
-      {
-        withCredentials: true,
-      },
-    );
-    if (verifyResponse.status !== 200) {
-      throw new Error("Unauthorized");
+    if (rightNetwork) {
+      const mySelf = await SelfID.authenticate({
+        authProvider: new EthereumAuthProvider(provider.provider, account),
+        ceramic: CERAMIC_TESTNET,
+        connectNetwork: CERAMIC_TESTNET,
+        model: modelAliases,
+      });
+      console.log("curr self", mySelf.id);
+      setSelf(mySelf);
+
+      const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/nonce/${account}`);
+      const signature = await provider.provider.request({
+        method: "personal_sign",
+        params: [data.message, account],
+      });
+      const verifyResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/verify/${account}`,
+        {
+          signature,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      if (verifyResponse.status !== 200) {
+        throw new Error("Unauthorized");
+      }
     }
 
     connection.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
-      setInjectedProvider(provider);
+      setInjectedProvider(new ethers.providers.Web3Provider(connection));
     });
 
     connection.on("accountsChanged", newAccounts => {
@@ -348,13 +352,13 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     connection.on("disconnect", (code, reason) => {
       logoutOfWeb3Modal();
     });
-  }, [setInjectedProvider]);
+  }, [setInjectedProvider, rightNetwork]);
 
   useEffect(() => {
     if (web3Modal && web3Modal.cachedProvider) {
       loadWeb3Modal();
     }
-  }, [web3Modal]);
+  }, [loadWeb3Modal]);
 
   let faucetHint = "";
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
@@ -410,6 +414,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     loadWeb3Modal,
     logoutOfWeb3Modal,
     contractConfig,
+    rightNetwork,
   };
 
   return <Web3Context.Provider value={providerProps}>{children}</Web3Context.Provider>;
