@@ -72,8 +72,6 @@ function UnlockProfile({ canView, dRecruitContract, tokenContract, privateProfil
           status: "success",
         });
       }
-      console.log("weiStakeAmount", weiStakeAmount);
-      console.log("weiStakeAmountS", weiStakeAmount.toString());
       const tx = await dRecruitContract.request(privateProfile.tokenId, weiStakeAmount, {
         value: 0,
       });
