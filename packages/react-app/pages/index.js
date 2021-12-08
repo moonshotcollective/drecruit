@@ -76,6 +76,9 @@ function Home() {
       }
       // handle other "switch" errors
     }
+    setTimeout(() => {
+      window.location.reload();
+    }, [1000]);
   };
   const cancelRef = React.useRef();
   const [inputEmail, setInputEmail] = useState("");
@@ -123,6 +126,10 @@ function Home() {
     if (context.injectedProvider && context.injectedProvider.getSigner()) {
       try {
         const signer = context.injectedProvider.getSigner();
+        const { chainId } = await context.injectedProvider.getNetwork();
+        if (chainId !== context.targetNetwork.chainId) {
+          throw new Error("Incorrect network");
+        }
         const contract = await loadDRecruitV1Contract(context.targetNetwork, signer);
         const tokenAddress = await contract.token();
         const tokenContract = await loadTokenContract(tokenAddress, signer);
