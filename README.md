@@ -1,3 +1,7 @@
+⚠️ **THIS REPOSITORY IS BEING ARCHIVED AND FUTURE DEVELOPMENT WORK WILL TAKE PLACE AT A [DIFFERENT REPOSITORY](https://github.com/moonshotcollective/recruiter.party)** ⚠️
+
+----
+
 # dRecruit
 
 A decentralized recruiting platform built by the Moonshot Collective!
